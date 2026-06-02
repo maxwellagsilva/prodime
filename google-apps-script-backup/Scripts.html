@@ -1,0 +1,1548 @@
+<script>
+// Standard sectors metadata and their parameters
+const SECTORS_METADATA = [
+  { id: "UTI Adulto", name: "UTI Adulto", desc: "Unidade de Terapia Intensiva Adulto", params: [{ name: "leitos", label: "Número de Leitos de UTI Adulto" }] },
+  { id: "UTI Neonatal", name: "UTI Neonatal", desc: "Unidade de Terapia Intensiva Neonatal", params: [{ name: "leitos", label: "Número de Leitos de UTI Neonatal" }] },
+  { id: "UTI Pediátrica", name: "UTI Pediátrica", desc: "Unidade de Terapia Intensiva Pediátrica", params: [{ name: "leitos", label: "Número de Leitos de UTI Pediátrica" }] },
+  { id: "Centro Cirúrgico", name: "Centro Cirúrgico", desc: "Salas cirúrgicas de alta/média complexidade", params: [{ name: "salas_cirurgicas", label: "Número de Salas Cirúrgicas" }, { name: "salas_recuperacao", label: "Número de Leitos de Recuperação (RPA)" }] },
+  { id: "Centro Obstetrico", name: "Centro Obstétrico", desc: "Salas de parto e assistência obstétrica", params: [{ name: "salas_parto", label: "Número de Salas de Parto" }] },
+  { id: "Pronto-Socorro", name: "Pronto-Socorro", desc: "Serviço de urgência/emergência e triagem", params: [{ name: "boxes_emergencia", label: "Número de Boxes de Emergência" }] },
+  { id: "Internação", name: "Unidade de Internação", desc: "Acomodações e leitos gerais de enfermaria", params: [{ name: "leitos", label: "Número de Leitos de Internação" }] },
+  { id: "CME", name: "CME", desc: "Central de Material e Esterilização", params: [{ name: "salas", label: "Número de Salas CME" }] },
+  { id: "Diagnóstico por Imagem", name: "Diagnóstico por Imagem", desc: "Salas de RX, TC, RM, Ultrassom e Mamografia", params: [
+    { name: "salas_rx", label: "Número de Salas de Raio-X (RX)" },
+    { name: "salas_tc", label: "Número de Salas de Tomografia (CT)" },
+    { name: "salas_rm", label: "Número de Salas de Ressonância (MR)" },
+    { name: "salas_usg", label: "Número de Salas de Ultrassom (USG)" },
+    { name: "salas_mamografia", label: "Número de Salas de Mamografia" }
+  ] }
+];
+
+// App state
+let state = {
+  currentUser: { email: "", name: "", role: "Admin" },
+  currentProject: null,
+  allProjects: [],
+  allEquipment: [],
+  allRules: [],
+  activeTab: "dashboard",
+  wizardActiveStep: 1
+};
+
+// Toggle mobile sidebar menu
+function toggleMobileMenu() {
+  const sidebar = document.querySelector('.sidebar');
+  sidebar.classList.toggle('active');
+  
+  let overlay = document.getElementById('mobile-sidebar-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'mobile-sidebar-overlay';
+    overlay.className = 'mobile-sidebar-overlay';
+    overlay.onclick = toggleMobileMenu;
+    document.body.appendChild(overlay);
+  }
+  overlay.classList.toggle('active');
+}
+
+// Initialize app when window loads
+window.addEventListener('DOMContentLoaded', () => {
+  showLoading("Carregando sistema...");
+  
+  // 1. Load Current User Context
+  google.script.run
+    .withSuccessHandler(user => {
+      state.currentUser = user;
+      
+      if (user.role === 'Unauthorised') {
+        document.getElementById('access-denied-screen').style.display = 'flex';
+        document.getElementById('access-denied-message').innerHTML = `O e-mail da sua conta institucional <strong>${user.email}</strong> não está cadastrado ou está inativo no sistema PRODIME.`;
+        document.getElementById('access-denied-user-info').innerHTML = `E-mail identificado: <strong>${user.email}</strong>`;
+        hideLoading();
+        return;
+      }
+      
+      updateUserWidget();
+      applyAccessControl();
+      
+      // 2. Load Dashboard Data
+      loadDashboard();
+      hideLoading();
+    })
+    .withFailureHandler(err => {
+      showToast("Falha ao se conectar com o servidor.", "danger");
+      hideLoading();
+    })
+    .getCurrentUser();
+    
+  // Render sector checkboxes in Wizard Step 2
+  renderSectorCheckboxes();
+  // Fill sector dropdowns in Admin Rules Editor
+  populateRulesFormDropdowns();
+});
+
+// Format currency helper
+function formatBRL(value) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+}
+
+// Format date helper
+function formatDate(isoString) {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch(e) {
+    return isoString;
+  }
+}
+
+// Format date-only helper for database dates
+function formatDateOnly(dateVal) {
+  if (!dateVal) return "";
+  try {
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateVal)) return dateVal;
+    if (typeof dateVal === 'string' && dateVal.includes('T')) {
+      const parts = dateVal.split('T')[0].split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return dateVal;
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const year = d.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  } catch(e) {
+    return dateVal;
+  }
+}
+
+// Show/hide loading indicator
+function showLoading(text) {
+  document.getElementById('loading-text').innerText = text || "Processando...";
+  document.getElementById('loading-overlay').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('active');
+}
+
+// Show toast notifications
+function showToast(message, type = "success") {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span>${message}</span>
+  `;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = "slideIn 0.3s ease-out reverse";
+    setTimeout(() => toast.remove(), 290);
+  }, 4000);
+}
+
+// Modal management
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Switch between navigation tabs
+function switchTab(tabId) {
+  state.activeTab = tabId;
+  
+  // Close mobile menu if open
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar && sidebar.classList.contains('active')) {
+    toggleMobileMenu();
+  }
+  
+  // Update sidebar menu highlight
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    if (item.getAttribute('data-tab') === tabId) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+  
+  // Show/Hide section content
+  const sections = document.querySelectorAll('.tab-section');
+  sections.forEach(sec => {
+    if (sec.id === `tab-${tabId}`) {
+      sec.classList.add('active');
+    } else {
+      sec.classList.remove('active');
+    }
+  });
+  
+  // Route initial data loads
+  if (tabId === 'dashboard') {
+    loadDashboard();
+  } else if (tabId === 'projects') {
+    loadProjects();
+  } else if (tabId === 'admin-equipment') {
+    loadEquipment();
+  } else if (tabId === 'admin-rules') {
+    loadRules();
+  } else if (tabId === 'admin-users') {
+    loadUsers();
+  } else if (tabId === 'admin-logs') {
+    loadAuditLogs();
+  }
+}
+
+// Refresh User widget in Sidebar
+function updateUserWidget() {
+  document.getElementById('widget-username').innerText = state.currentUser.name;
+  document.getElementById('widget-userrole').innerText = state.currentUser.role;
+  const switcher = document.getElementById('demo-role-switcher');
+  if (switcher) switcher.value = state.currentUser.role;
+  
+  // Avatar initials
+  const names = state.currentUser.name.split(' ');
+  const initials = names.length > 1 ? (names[0][0] + names[1][0]).toUpperCase() : names[0].substring(0, 2).toUpperCase();
+  document.getElementById('widget-avatar').innerText = initials;
+}
+
+// Change user role mock for demonstration purposes
+function changeDemoRole(role) {
+  showLoading("Alternando perfil...");
+  google.script.run
+    .withSuccessHandler(user => {
+      state.currentUser = user;
+      updateUserWidget();
+      applyAccessControl();
+      showToast(`Perfil alterado para ${role}`, "info");
+      
+      // Refresh current page context
+      switchTab(state.activeTab);
+      hideLoading();
+    })
+    .switchUserRole(role);
+}
+
+// Apply role-based access control rules
+function applyAccessControl() {
+  const role = state.currentUser.role;
+  const isVisualizador = role === 'Visualizador';
+  const isCliente = role === 'Cliente';
+  const isConsultor = role === 'Consultor';
+  const isAdmin = role === 'Admin';
+  
+  // Admin sidebar tabs visibility
+  const navEq = document.querySelector('[data-tab="admin-equipment"]');
+  const navRules = document.querySelector('[data-tab="admin-rules"]');
+  const navLogs = document.querySelector('[data-tab="admin-logs"]');
+  const navUsers = document.querySelector('[data-tab="admin-users"]');
+  
+  // Only Admin sees Users and Logs
+  if (navLogs) navLogs.style.display = isAdmin ? 'flex' : 'none';
+  if (navUsers) navUsers.style.display = isAdmin ? 'flex' : 'none';
+  
+  // Rules and Equipment visible to Admin and Consultor
+  const isEqOrRuleVisible = isAdmin || isConsultor;
+  if (navEq) navEq.style.display = isEqOrRuleVisible ? 'flex' : 'none';
+  if (navRules) navRules.style.display = isEqOrRuleVisible ? 'flex' : 'none';
+  
+  // Create project permissions
+  const createProjBtns = document.querySelectorAll('.btn-primary[onclick="startNewProject()"]');
+  createProjBtns.forEach(btn => {
+    btn.style.display = isVisualizador ? 'none' : 'flex';
+  });
+  
+  // Sizing adjust button permissions
+  const adjustResultBtns = document.querySelectorAll('.btn-adjust-qty');
+  adjustResultBtns.forEach(btn => {
+    btn.disabled = isVisualizador;
+  });
+}
+
+// Load Dashboard State
+function loadDashboard() {
+  google.script.run
+    .withSuccessHandler(data => {
+      if (!data) {
+        showToast("Falha ao se conectar ou inicializar dados do dashboard.", "warning");
+        return;
+      }
+      document.getElementById('stat-total-projects').innerText = data.totalProjects || 0;
+      document.getElementById('stat-total-equipment').innerText = data.totalEquipment || 0;
+      document.getElementById('stat-total-rules').innerText = data.totalRules || 0;
+      document.getElementById('stat-total-investment').innerText = formatBRL(data.totalInvestment || 0);
+      
+      // Populate recent activities log
+      const logContainer = document.getElementById('recent-logs-list');
+      if (data.recentLogs && data.recentLogs.length > 0) {
+        logContainer.innerHTML = data.recentLogs.map(log => `
+          <div style="padding:8px; border-bottom:1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+              <span style="font-weight:600; color:var(--primary);">${log.action}</span>
+              <span style="color:#64748b; font-size:0.7rem;">${formatDate(log.timestamp).split(' ')[0]}</span>
+            </div>
+            <div style="color:var(--secondary);">${log.details}</div>
+            <div style="color:#64748b; font-size:0.75rem; margin-top:2px;">Por: ${log.user_email}</div>
+          </div>
+        `).join('');
+      } else {
+        logContainer.innerHTML = `<div style="color:var(--secondary-light); text-align:center; padding:20px 0;">Nenhuma atividade recente.</div>`;
+      }
+    })
+    .getDatabaseState();
+}
+
+// Load and Render Projects List
+function loadProjects() {
+  showLoading("Carregando projetos...");
+  google.script.run
+    .withSuccessHandler(projects => {
+      state.allProjects = projects || [];
+      const tbody = document.getElementById('projects-table-body');
+      
+      if (!projects || projects.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--secondary-light); padding: 40px 0;">
+              Nenhum projeto cadastrado. Clique em "Novo Projeto" para começar.
+            </td>
+          </tr>
+        `;
+        hideLoading();
+        return;
+      }
+      
+      const role = state.currentUser.role;
+      const isVisualizador = role === 'Visualizador';
+      
+      tbody.innerHTML = projects.map(proj => `
+        <tr>
+          <td style="font-weight:600; color:var(--primary);">${proj.name}</td>
+          <td>${proj.hospital_name}</td>
+          <td>${proj.city} - ${proj.state}</td>
+          <td><span class="badge badge-info">${proj.establishment_type}</span></td>
+          <td>${proj.technical_manager}</td>
+          <td style="font-size:0.8rem; color:var(--secondary-light);">${formatDate(proj.updated_at)}</td>
+          <td class="no-print" style="text-align:center; display:flex; justify-content:center; gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="editProject('${proj.id}')" title="Editar/Ver Projeto">
+              ${isVisualizador ? 'Abrir' : 'Editar'}
+            </button>
+            <button class="btn btn-info btn-sm" onclick="viewProjectReport('${proj.id}')" title="Ver Relatório PDF">
+              Relatório
+            </button>
+            ${!isVisualizador ? `
+              <button class="btn btn-danger btn-sm" onclick="deleteProject('${proj.id}', '${proj.name}')" title="Excluir Projeto">
+                Excluir
+              </button>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+      
+      hideLoading();
+    })
+    .listProjects();
+}
+
+// Delete a project
+function deleteProject(projectId, name) {
+  if (confirm(`Tem certeza que deseja excluir o projeto "${name}"? Esta ação não pode ser desfeita e removerá todo o dimensionamento calculado.`)) {
+    showLoading("Excluindo projeto...");
+    google.script.run
+      .withSuccessHandler(success => {
+        showToast(`Projeto "${name}" excluído com sucesso.`, "success");
+        loadProjects();
+      })
+      .deleteProject(projectId, state.currentUser.email);
+  }
+}
+
+// Direct view PDF report from projects list
+function viewProjectReport(projectId) {
+  showLoading("Carregando relatório...");
+  google.script.run
+    .withSuccessHandler(projData => {
+      if (!projData) {
+        showToast("Erro ao carregar os dados do projeto.", "danger");
+        hideLoading();
+        return;
+      }
+      state.currentProject = projData;
+      document.getElementById('wizard-title').innerText = `Projeto: ${projData.project.name}`;
+      renderFinalReport();
+      showWizardStep(5);
+      switchTab('project-wizard');
+      hideLoading();
+    })
+    .withFailureHandler(err => {
+      showToast("Erro ao conectar com o servidor.", "danger");
+      hideLoading();
+    })
+    .getProject(projectId);
+}
+
+// ==================== WIZARD LOGIC ====================
+
+// Generate standard sector checkbox elements
+function renderSectorCheckboxes() {
+  const container = document.getElementById('sectors-checkbox-container');
+  container.innerHTML = SECTORS_METADATA.map(sect => `
+    <div class="sector-checkbox-card" id="card-${sect.id.replace(/\s+/g, '-')}" onclick="toggleSectorCheckbox('${sect.id}')">
+      <input type="checkbox" id="chk-${sect.id.replace(/\s+/g, '-')}" value="${sect.id}" onclick="event.stopPropagation(); syncSectorCardState('${sect.id}')">
+      <div class="sector-card-info">
+        <span class="sector-card-title">${sect.name}</span>
+        <span class="sector-card-desc">${sect.desc}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleSectorCheckbox(sectorId) {
+  const chk = document.getElementById(`chk-${sectorId.replace(/\s+/g, '-')}`);
+  chk.checked = !chk.checked;
+  syncSectorCardState(sectorId);
+}
+
+function syncSectorCardState(sectorId) {
+  const card = document.getElementById(`card-${sectorId.replace(/\s+/g, '-')}`);
+  const chk = document.getElementById(`chk-${sectorId.replace(/\s+/g, '-')}`);
+  if (chk.checked) {
+    card.classList.add('selected');
+  } else {
+    card.classList.remove('selected');
+  }
+}
+
+// Launch Wizard for new Project
+function startNewProject() {
+  state.currentProject = null;
+  state.wizardActiveStep = 1;
+  
+  // Clear step 1 fields
+  document.getElementById('p-name').value = "";
+  document.getElementById('p-hospital').value = "";
+  document.getElementById('p-est-type').value = "Hospital Geral";
+  document.getElementById('p-city').value = "";
+  document.getElementById('p-state').value = "";
+  document.getElementById('p-profile').value = "Público";
+  document.getElementById('p-proj-type').value = "Novo Projeto";
+  document.getElementById('p-manager').value = "";
+  document.getElementById('p-currency').value = "BRL";
+  document.getElementById('p-notes').value = "";
+  
+  // Clear sector checkboxes
+  const checkboxes = document.querySelectorAll('#sectors-checkbox-container input[type="checkbox"]');
+  checkboxes.forEach(chk => {
+    chk.checked = false;
+    const card = document.getElementById(`card-${chk.value.replace(/\s+/g, '-')}`);
+    if (card) card.classList.remove('selected');
+  });
+  
+  // Clear parameter container
+  document.getElementById('parameters-sections-container').innerHTML = "";
+  
+  document.getElementById('wizard-title').innerText = "Novo Projeto de Dimensionamento";
+  showWizardStep(1);
+  switchTab('project-wizard');
+}
+
+// Edit project
+function editProject(projectId) {
+  showLoading("Carregando dados do projeto...");
+  google.script.run
+    .withSuccessHandler(projData => {
+      state.currentProject = projData;
+      
+      // Fill step 1
+      document.getElementById('p-name').value = projData.project.name;
+      document.getElementById('p-hospital').value = projData.project.hospital_name;
+      document.getElementById('p-est-type').value = projData.project.establishment_type;
+      document.getElementById('p-city').value = projData.project.city;
+      document.getElementById('p-state').value = projData.project.state;
+      document.getElementById('p-profile').value = projData.project.profile;
+      document.getElementById('p-proj-type').value = projData.project.project_type;
+      document.getElementById('p-manager').value = projData.project.technical_manager;
+      document.getElementById('p-currency').value = projData.project.currency;
+      document.getElementById('p-notes').value = projData.project.notes || "";
+      
+      // Check sectors
+      const activeSectorsList = projData.sectors.map(s => s.sector_name);
+      SECTORS_METADATA.forEach(sect => {
+        const chk = document.getElementById(`chk-${sect.id.replace(/\s+/g, '-')}`);
+        const card = document.getElementById(`card-${sect.id.replace(/\s+/g, '-')}`);
+        if (activeSectorsList.includes(sect.id)) {
+          chk.checked = true;
+          card.classList.add('selected');
+        } else {
+          chk.checked = false;
+          card.classList.remove('selected');
+        }
+      });
+      
+      // Render parameter inputs
+      renderParameterInputs(activeSectorsList);
+      
+      // Fill parameter values
+      for (const sectorName in projData.parameters) {
+        const sectorParams = projData.parameters[sectorName];
+        for (const paramName in sectorParams) {
+          const inputId = `param-${sectorName.replace(/\s+/g, '-')}-${paramName}`;
+          const inputEl = document.getElementById(inputId);
+          if (inputEl) {
+            inputEl.value = sectorParams[paramName];
+          }
+        }
+      }
+      
+      document.getElementById('wizard-title').innerText = `Projeto: ${projData.project.name}`;
+      
+      // If we already have results, we can jump to results or review
+      // For editing flow, we go to step 1 and let them review
+      showWizardStep(1);
+      switchTab('project-wizard');
+      hideLoading();
+    })
+    .getProject(projectId);
+}
+
+// Show specific Wizard Step View
+function showWizardStep(stepNum) {
+  state.wizardActiveStep = stepNum;
+  
+  // Update step indicators top bar
+  for (let i = 1; i <= 5; i++) {
+    const ind = document.getElementById(`step-ind-${i}`);
+    ind.classList.remove('active', 'completed');
+    if (i < stepNum) {
+      ind.classList.add('completed');
+    } else if (i === stepNum) {
+      ind.classList.add('active');
+    }
+  }
+  
+  // Toggle step cards
+  for (let i = 1; i <= 5; i++) {
+    const card = document.getElementById(`wizard-step-${i}`);
+    if (i === stepNum) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  }
+}
+
+// Navigation flow in wizard
+function nextStep(stepNum) {
+  const role = state.currentUser.role;
+  const isVisualizador = role === 'Visualizador';
+  
+  if (stepNum === 2) {
+    // Validate step 1 is done
+    const name = document.getElementById('p-name').value;
+    const hosp = document.getElementById('p-hospital').value;
+    if (!name || !hosp) {
+      showToast("Por favor preencha todos os campos obrigatórios (*)", "warning");
+      return;
+    }
+    showWizardStep(2);
+  }
+  
+  else if (stepNum === 3) {
+    // Collect checked sectors
+    const activeSectors = getSelectedSectors();
+    if (activeSectors.length === 0) {
+      showToast("Selecione pelo menos um setor para dimensionamento.", "warning");
+      return;
+    }
+    
+    // Render the parameters forms dynamically
+    renderParameterInputs(activeSectors);
+    
+    // Pre-populate parameter inputs with previously entered values if editing
+    if (state.currentProject && state.currentProject.parameters) {
+      activeSectors.forEach(sectorName => {
+        const sectorParams = state.currentProject.parameters[sectorName];
+        if (sectorParams) {
+          for (const paramName in sectorParams) {
+            const inputId = `param-${sectorName.replace(/\s+/g, '-')}-${paramName}`;
+            const inputEl = document.getElementById(inputId);
+            if (inputEl) inputEl.value = sectorParams[paramName];
+          }
+        }
+      });
+    }
+    
+    showWizardStep(3);
+  }
+  
+  else if (stepNum === 4) {
+    // Collect active sectors and parameters
+    const activeSectors = getSelectedSectors();
+    const parameters = {};
+    let hasValidationErrors = false;
+    
+    activeSectors.forEach(sectorName => {
+      parameters[sectorName] = {};
+      const sectorMeta = SECTORS_METADATA.find(s => s.id === sectorName);
+      sectorMeta.params.forEach(p => {
+        const inputId = `param-${sectorName.replace(/\s+/g, '-')}-${p.name}`;
+        const inputVal = document.getElementById(inputId).value;
+        const numVal = parseInt(inputVal, 10);
+        
+        if (isNaN(numVal) || numVal < 0) {
+          showToast(`Informe um valor válido para o parâmetro do setor ${sectorName}`, "warning");
+          hasValidationErrors = true;
+          return;
+        }
+        parameters[sectorName][p.name] = numVal;
+      });
+    });
+    
+    if (hasValidationErrors) return;
+    if (isVisualizador) {
+      // Just render results, don't allow saving metadata
+      renderWizardResults();
+      showWizardStep(4);
+      return;
+    }
+    
+    // Save metadata, sectors list, parameters to DB and calculate
+    showLoading("Calculando dimensionamento no motor de regras...");
+    
+    const projectMetadata = {
+      id: state.currentProject ? state.currentProject.project.id : "",
+      name: document.getElementById('p-name').value,
+      hospital_name: document.getElementById('p-hospital').value,
+      establishment_type: document.getElementById('p-est-type').value,
+      city: document.getElementById('p-city').value,
+      state: document.getElementById('p-state').value,
+      profile: document.getElementById('p-profile').value,
+      project_type: document.getElementById('p-proj-type').value,
+      technical_manager: document.getElementById('p-manager').value,
+      currency: document.getElementById('p-currency').value,
+      price_date: state.currentProject ? state.currentProject.project.price_date : new Date().toLocaleDateString('pt-BR'),
+      is_public: document.getElementById('p-profile').value === 'Público' ? 'SIM' : 'NÃO',
+      notes: document.getElementById('p-notes').value
+    };
+    
+    const sectorsList = activeSectors.map(sName => {
+      const existing = state.currentProject ? state.currentProject.sectors.find(es => es.sector_name === sName) : null;
+      return {
+        sector_name: sName,
+        complexity: existing ? existing.complexity : "Média",
+        turns: existing ? existing.turns : 3,
+        volume_estimated: existing ? existing.volume_estimated : 100,
+        criticality: existing ? existing.criticality : "Média"
+      };
+    });
+    
+    google.script.run
+      .withSuccessHandler(updatedProj => {
+        state.currentProject = updatedProj;
+        renderWizardResults();
+        
+        // Populate filter dropdowns in Wizard Results view
+        populateResultsFilters(activeSectors);
+        
+        showWizardStep(4);
+        hideLoading();
+        showToast("Parque de equipamentos dimensionado com sucesso!", "success");
+      })
+      .withFailureHandler(err => {
+        showToast("Erro ao processar dimensionamento.", "danger");
+        hideLoading();
+      })
+      .saveProject(projectMetadata, sectorsList, parameters, state.currentUser.email);
+  }
+  
+  else if (stepNum === 5) {
+    // Generate and render Final Report
+    renderFinalReport();
+    showWizardStep(5);
+  }
+}
+
+function prevStep(stepNum) {
+  showWizardStep(stepNum);
+}
+
+// Get array of checked sector names
+function getSelectedSectors() {
+  const checked = [];
+  SECTORS_METADATA.forEach(sect => {
+    const chk = document.getElementById(`chk-${sect.id.replace(/\s+/g, '-')}`);
+    if (chk && chk.checked) checked.push(sect.id);
+  });
+  return checked;
+}
+
+// Render dynamic parameter inputs based on active sectors
+function renderParameterInputs(activeSectors) {
+  const container = document.getElementById('parameters-sections-container');
+  container.innerHTML = activeSectors.map(sectorName => {
+    const sectMeta = SECTORS_METADATA.find(s => s.id === sectorName);
+    return `
+      <div class="parameter-section-card">
+        <div class="parameter-section-title">${sectMeta.name}</div>
+        <div class="parameter-inputs-grid">
+          ${sectMeta.params.map(p => `
+            <div class="form-group">
+              <label class="form-label">${p.label} *</label>
+              <input type="number" class="form-control" id="param-${sectorName.replace(/\s+/g, '-')}-${p.name}" min="0" value="0" required>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Populate Wizard Results Filters dropdown
+function populateResultsFilters(activeSectors) {
+  const select = document.getElementById('filter-result-sector');
+  select.innerHTML = '<option value="ALL">Todos os Setores</option>' + 
+    activeSectors.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+// Render Sizing Results (Wizard Step 4)
+function renderWizardResults() {
+  if (!state.currentProject || !state.currentProject.results) {
+    const tbody = document.getElementById('results-table-body');
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:var(--danger); font-weight:600; padding:30px 0;">
+      Erro: Nenhum projeto ativo ou resultados carregados.<br>
+      <span style="font-size:0.85rem; font-weight:400; color:var(--secondary-light); margin-top:8px; display:inline-block;">
+        Dica: Se você atualizou a estrutura da planilha recentemente, vá até a aba <strong>Auditoria & Logs</strong> e clique no botão <strong>"Resetar Banco de Dados"</strong> para reconstruir as tabelas de forma limpa.
+      </span>
+    </td></tr>`;
+    document.getElementById('span-results-count').innerText = "0";
+    document.getElementById('span-results-cost').innerText = formatBRL(0);
+    return;
+  }
+  const results = state.currentProject.results;
+  const tbody = document.getElementById('results-table-body');
+  
+  if (results.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="12" style="text-align:center; color:var(--secondary-light); padding:30px 0;">
+          Nenhum equipamento foi dimensionado para os parâmetros informados. Verifique se as regras estão cadastradas para estes setores.
+        </td>
+      </tr>
+    `;
+    document.getElementById('span-results-count').innerText = "0";
+    document.getElementById('span-results-cost').innerText = formatBRL(0);
+    return;
+  }
+  
+  let totalCost = 0;
+  tbody.innerHTML = results.map(r => {
+    const finalQty = (r.quantity_adjusted !== null && r.quantity_adjusted !== undefined && String(r.quantity_adjusted).trim() !== "") ? Number(r.quantity_adjusted) : r.quantity_recommended;
+    const rowCost = finalQty * r.avg_price;
+    totalCost += rowCost;
+    
+    // Classbadge color
+    let classBadge = 'badge-info';
+    if (r.classification === 'Obrigatório') classBadge = 'badge-danger';
+    else if (r.classification === 'Recomendado') classBadge = 'badge-success';
+    
+    const isAdjusted = r.quantity_adjusted !== null && r.quantity_adjusted !== undefined && String(r.quantity_adjusted).trim() !== "";
+    
+    return `
+      <tr class="result-row-item" data-sector="${r.sector_name}" data-class="${r.classification}">
+        <td style="font-weight:600;">${r.sector_name}</td>
+        <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem;">${r.equipment_code}</code></td>
+        <td style="font-weight:500;">${r.equipment_name}</td>
+        <td>${r.category}</td>
+        <td style="text-align: center;">${r.quantity_calculated}</td>
+        <td style="text-align: center; font-weight:600;">${r.quantity_recommended}</td>
+        <td style="text-align: center;">
+          ${isAdjusted ? `
+            <span style="font-size:1.05rem; font-weight:700; color:var(--primary);">${r.quantity_adjusted}</span>
+            <span class="adjust-log-info" title="Motivo: ${r.adjustment_reason}">* Ajustado por ${r.adjusted_by.split('@')[0]}</span>
+          ` : '<span style="color:#94a3b8; font-style:italic;">Não</span>'}
+        </td>
+        <td>${formatBRL(r.avg_price)}</td>
+        <td style="font-weight:700; color:var(--secondary);">${formatBRL(rowCost)}</td>
+        <td><span class="badge ${classBadge}">${r.classification}</span></td>
+        <td style="font-size:0.8rem; max-width: 250px; line-height:1.4;">
+          ${r.normative_reference ? `<strong>[${r.normative_reference}]</strong> ` : ''}${r.adjustment_reason ? `<span style="color:var(--primary);">* Ajustado: ${r.adjustment_reason}</span>` : r.infra_requirements}
+        </td>
+        <td class="no-print" style="text-align:center;">
+          <button class="btn btn-secondary btn-sm btn-adjust-qty" onclick="openAdjustQuantityModal('${r.sector_name}', '${r.equipment_code}', '${r.equipment_name.replace(/'/g, "\\'")}', ${r.quantity_recommended}, '${r.quantity_adjusted || ''}', '${r.adjustment_reason.replace(/'/g, "\\'")}')">
+            Ajustar
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  document.getElementById('span-results-count').innerText = results.length;
+  document.getElementById('span-results-cost').innerText = formatBRL(totalCost);
+  
+  applyAccessControl(); // Re-apply visualizador lock on buttons
+}
+
+// Filter results table in wizard
+function filterWizardResults() {
+  const sectFilter = document.getElementById('filter-result-sector').value;
+  const classFilter = document.getElementById('filter-result-class').value;
+  
+  const rows = document.querySelectorAll('.result-row-item');
+  rows.forEach(row => {
+    const rSect = row.getAttribute('data-sector');
+    const rClass = row.getAttribute('data-class');
+    
+    const matchSect = (sectFilter === 'ALL' || rSect === sectFilter);
+    const matchClass = (classFilter === 'ALL' || rClass === classFilter);
+    
+    if (matchSect && matchClass) {
+      row.style.display = 'table-row';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+// Open Quantity Adjustment modal
+function openAdjustQuantityModal(sector, code, name, recommended, adjusted, reason) {
+  document.getElementById('adj-sector').value = sector;
+  document.getElementById('adj-code').value = code;
+  document.getElementById('adj-eq-name-display').innerText = name;
+  document.getElementById('adj-sector-display').innerText = sector;
+  document.getElementById('adj-val-recommended').innerText = recommended;
+  
+  document.getElementById('adj-val-qty').value = adjusted !== "" ? adjusted : recommended;
+  document.getElementById('adj-val-reason').value = reason || "";
+  
+  openModal('modal-adjust');
+}
+
+// Save Quantity Override
+function saveQuantityAdjustment(e) {
+  e.preventDefault();
+  
+  const sector = document.getElementById('adj-sector').value;
+  const code = document.getElementById('adj-code').value;
+  const qty = document.getElementById('adj-val-qty').value;
+  const reason = document.getElementById('adj-val-reason').value;
+  
+  if (!reason || reason.trim() === "") {
+    showToast("Justificativa de alteração é obrigatória.", "warning");
+    return;
+  }
+  
+  showLoading("Gravando ajuste no dimensionamento...");
+  closeModal('modal-adjust');
+  
+  google.script.run
+    .withSuccessHandler(success => {
+      // Reload current project representation
+      google.script.run
+        .withSuccessHandler(projData => {
+          state.currentProject = projData;
+          renderWizardResults();
+          hideLoading();
+          showToast("Ajuste de quantidade aplicado com sucesso.", "success");
+        })
+        .getProject(state.currentProject.project.id);
+    })
+    .adjustEquipmentQuantity(state.currentProject.project.id, sector, code, qty, reason, state.currentUser.email);
+}
+
+// Remove Quantity Override
+function clearAdjustmentOverride() {
+  const sector = document.getElementById('adj-sector').value;
+  const code = document.getElementById('adj-code').value;
+  
+  showLoading("Removendo ajuste...");
+  closeModal('modal-adjust');
+  
+  google.script.run
+    .withSuccessHandler(success => {
+      // Reload current project representation
+      google.script.run
+        .withSuccessHandler(projData => {
+          state.currentProject = projData;
+          renderWizardResults();
+          hideLoading();
+          showToast("Ajuste manual removido. Redimensionado para o padrão do motor.", "success");
+        })
+        .getProject(state.currentProject.project.id);
+    })
+    .adjustEquipmentQuantity(state.currentProject.project.id, sector, code, null, "", state.currentUser.email);
+}
+
+// Render Final Report (Wizard Step 5)
+function renderFinalReport() {
+  if (!state.currentProject || !state.currentProject.project) {
+    showToast("Erro: Nenhum projeto ativo para exibir no relatório.", "danger");
+    return;
+  }
+  const proj = state.currentProject.project;
+  const results = state.currentProject.results;
+  
+  // Fill text references
+  document.getElementById('rep-proj-id').innerText = proj.id;
+  document.getElementById('rep-date').innerText = new Date().toLocaleDateString('pt-BR');
+  document.getElementById('rep-proj-name').innerText = proj.name;
+  document.getElementById('rep-hospital-name').innerText = proj.hospital_name;
+  document.getElementById('rep-location').innerText = `${proj.city} - ${proj.state}`;
+  document.getElementById('rep-eas-type').innerText = proj.establishment_type;
+  document.getElementById('rep-manager-name').innerText = proj.technical_manager;
+  document.getElementById('rep-currency-info').innerText = `${proj.currency} (Data-Base: ${formatDateOnly(proj.price_date) || 'Atual'})`;
+  
+  // Sizing overview metrics
+  const activeSectorsCount = state.currentProject.sectors.length;
+  document.getElementById('rep-stat-sectors').innerText = activeSectorsCount;
+  
+  // Calculate total leitos/salas from parameter list
+  let totalBeds = 0;
+  for (const sector in state.currentProject.parameters) {
+    const params = state.currentProject.parameters[sector];
+    for (const pName in params) {
+      totalBeds += params[pName];
+    }
+  }
+  document.getElementById('rep-stat-beds').innerText = totalBeds;
+  
+  let totalItemsCount = 0;
+  let totalCost = 0;
+  
+  const sectorCostMap = {};
+  const classCostMap = {
+    'Obrigatório': 0,
+    'Recomendado': 0,
+    'Opcional': 0
+  };
+  
+  results.forEach(r => {
+    const finalQty = (r.quantity_adjusted !== null && r.quantity_adjusted !== undefined && String(r.quantity_adjusted).trim() !== "") ? Number(r.quantity_adjusted) : r.quantity_recommended;
+    const rowCost = finalQty * r.avg_price;
+    
+    totalItemsCount += finalQty;
+    totalCost += rowCost;
+    
+    // Sector cost mapping
+    sectorCostMap[r.sector_name] = (sectorCostMap[r.sector_name] || 0) + rowCost;
+    
+    // Classification cost mapping
+    if (classCostMap[r.classification] !== undefined) {
+      classCostMap[r.classification] += rowCost;
+    }
+  });
+  
+  document.getElementById('rep-stat-items').innerText = totalItemsCount;
+  document.getElementById('rep-stat-cost').innerText = formatBRL(totalCost);
+  
+  // Render Sector Cost Breakdowns
+  const secList = document.getElementById('rep-sector-cost-list');
+  secList.innerHTML = Object.entries(sectorCostMap).map(([sector, cost]) => `
+    <div class="finance-breakdown-item">
+      <span>${sector}</span>
+      <span class="finance-breakdown-value">${formatBRL(cost)}</span>
+    </div>
+  `).join('');
+  
+  // Render Class Cost Breakdowns
+  const classList = document.getElementById('rep-class-cost-list');
+  classList.innerHTML = Object.entries(classCostMap).map(([classification, cost]) => `
+    <div class="finance-breakdown-item">
+      <span>${classification}</span>
+      <span class="finance-breakdown-value">${formatBRL(cost)}</span>
+    </div>
+  `).join('');
+  
+  // Render Details Table
+  const tbody = document.getElementById('rep-details-table-body');
+  tbody.innerHTML = results.map(r => {
+    const finalQty = (r.quantity_adjusted !== null && r.quantity_adjusted !== undefined && String(r.quantity_adjusted).trim() !== "") ? Number(r.quantity_adjusted) : r.quantity_recommended;
+    const rowCost = finalQty * r.avg_price;
+    
+    let classBadge = 'badge-info';
+    if (r.classification === 'Obrigatório') classBadge = 'badge-danger';
+    else if (r.classification === 'Recomendado') classBadge = 'badge-success';
+    
+    return `
+      <tr>
+        <td style="font-weight:600;">${r.sector_name}</td>
+        <td><code>${r.equipment_code}</code></td>
+        <td style="font-weight:500;">${r.equipment_name}</td>
+        <td style="text-align: center;">${r.quantity_recommended}</td>
+        <td style="text-align: center; font-weight:700; color:var(--primary);">${finalQty}</td>
+        <td>${formatBRL(r.avg_price)}</td>
+        <td style="font-weight:700; color:var(--primary);">${formatBRL(rowCost)}</td>
+        <td><span class="badge ${classBadge}">${r.classification}</span></td>
+        <td style="font-size:0.8rem; line-height:1.4;">
+          ${r.normative_reference ? `<strong>[${r.normative_reference}]</strong> ` : ''}${r.adjustment_reason ? `<span style="color:var(--warning); font-weight:600;">* Ajuste Clínico: ${r.adjustment_reason}</span>` : r.infra_requirements}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Export report sizing data to CSV
+function exportToExcel() {
+  if (!state.currentProject) return;
+  
+  const results = state.currentProject.results;
+  let csv = 'Setor;Codigo;Equipamento;Categoria;Qtd Recomendada;Qtd Ajustada;Preco Unitario;Custo Total;Classificacao;Regra/Referencia\r\n';
+  
+  results.forEach(r => {
+    const finalQty = (r.quantity_adjusted !== null && r.quantity_adjusted !== undefined && String(r.quantity_adjusted).trim() !== "") ? Number(r.quantity_adjusted) : r.quantity_recommended;
+    const rowCost = finalQty * r.avg_price;
+    const ruleRef = r.adjustment_reason ? `Ajustado: ${r.adjustment_reason}` : r.normative_reference || '';
+    
+    csv += `"${r.sector_name}";"${r.equipment_code}";"${r.equipment_name}";"${r.category}";${r.quantity_recommended};${r.quantity_adjusted || ''};${r.avg_price};${rowCost};"${r.classification}";"${ruleRef}"\r\n`;
+  });
+  
+  const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `PRODIME_Dimensionamento_${state.currentProject.project.name.replace(/\s+/g, '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ==================== ADMIN: EQUIPMENT MANAGEMENT ====================
+
+// Load all equipment for Admin grid
+function loadEquipment() {
+  showLoading("Carregando equipamentos da base...");
+  google.script.run
+    .withSuccessHandler(equipment => {
+      state.allEquipment = equipment || [];
+      renderEquipmentTable(state.allEquipment);
+      
+      // Populate equipment selection list in Admin Rules Modal
+      populateRulesEquipmentDropdown(state.allEquipment);
+      
+      hideLoading();
+    })
+    .listEquipment();
+}
+
+function renderEquipmentTable(equipment) {
+  const tbody = document.getElementById('admin-eq-table-body');
+  
+  if (!equipment || equipment.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--secondary-light); padding:20px 0;">Nenhum equipamento cadastrado.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = equipment.map(eq => `
+    <tr>
+      <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:600;">${eq.code}</code></td>
+      <td style="font-weight:600; color:var(--primary);">${eq.name}</td>
+      <td>${eq.category}</td>
+      <td>${formatBRL(eq.avg_price)}</td>
+      <td><span class="badge ${eq.criticality === 'Alta' ? 'badge-danger' : (eq.criticality === 'Média' ? 'badge-warning' : 'badge-success')}">${eq.criticality}</span></td>
+      <td>${eq.maintenance_interval_months} meses</td>
+      <td style="font-size:0.8rem; max-width: 150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${eq.normative_reference}">${eq.normative_reference || '-'}</td>
+      <td><span class="badge ${eq.status === 'Ativo' ? 'badge-success' : 'badge-danger'}">${eq.status}</span></td>
+      <td style="text-align:center;">
+        <button class="btn btn-secondary btn-sm" onclick="editEquipment('${eq.code}')">Editar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Filter equipment catalog list
+function filterEquipmentList() {
+  const query = document.getElementById('search-eq-query').value.toLowerCase();
+  const cat = document.getElementById('search-eq-cat').value;
+  
+  const filtered = state.allEquipment.filter(eq => {
+    const matchQuery = eq.code.toLowerCase().includes(query) || eq.name.toLowerCase().includes(query);
+    const matchCat = (cat === 'ALL' || eq.category === cat);
+    return matchQuery && matchCat;
+  });
+  
+  renderEquipmentTable(filtered);
+}
+
+// Open equipment editor modal
+function openEquipmentModal() {
+  document.getElementById('eq-modal-title').innerText = "Cadastrar Novo Equipamento";
+  document.getElementById('eq-code').readOnly = false;
+  
+  // Clear fields
+  document.getElementById('eq-code').value = "";
+  document.getElementById('eq-name').value = "";
+  document.getElementById('eq-category').value = "Monitorização";
+  document.getElementById('eq-subcat').value = "";
+  document.getElementById('eq-desc').value = "";
+  document.getElementById('eq-min-price').value = 0;
+  document.getElementById('eq-avg-price').value = 0;
+  document.getElementById('eq-max-price').value = 0;
+  document.getElementById('eq-manufacturers').value = "";
+  document.getElementById('eq-lifespan').value = 7;
+  document.getElementById('eq-maint-int').value = 12;
+  document.getElementById('eq-calib').value = "true";
+  document.getElementById('eq-criticality').value = "Média";
+  document.getElementById('eq-complexity').value = "Média";
+  document.getElementById('eq-infra-elec').value = "110V/220V";
+  document.getElementById('eq-infra-gases').value = "Não";
+  document.getElementById('eq-infra-water').value = "Não";
+  document.getElementById('eq-norm-ref').value = "RDC 50 Anvisa";
+  document.getElementById('eq-sectors').value = "";
+  document.getElementById('eq-status').value = "Ativo";
+  
+  openModal('modal-equipment');
+}
+
+function editEquipment(code) {
+  const eq = state.allEquipment.find(e => e.code === code);
+  if (!eq) return;
+  
+  document.getElementById('eq-modal-title').innerText = `Editar Equipamento: ${code}`;
+  document.getElementById('eq-code').value = eq.code;
+  document.getElementById('eq-code').readOnly = true;
+  
+  document.getElementById('eq-name').value = eq.name;
+  document.getElementById('eq-category').value = eq.category;
+  document.getElementById('eq-subcat').value = eq.subcategory || "";
+  document.getElementById('eq-desc').value = eq.description || "";
+  document.getElementById('eq-min-price').value = eq.min_price || 0;
+  document.getElementById('eq-avg-price').value = eq.avg_price || 0;
+  document.getElementById('eq-max-price').value = eq.max_price || 0;
+  document.getElementById('eq-manufacturers').value = eq.manufacturers || "";
+  document.getElementById('eq-lifespan').value = eq.life_span_years || 7;
+  document.getElementById('eq-maint-int').value = eq.maintenance_interval_months || 12;
+  document.getElementById('eq-calib').value = String(eq.calibration_required);
+  document.getElementById('eq-criticality').value = eq.criticality || "Média";
+  document.getElementById('eq-complexity').value = eq.complexity || "Média";
+  document.getElementById('eq-infra-elec').value = eq.infra_electricity || "110V/220V";
+  document.getElementById('eq-infra-gases').value = eq.infra_gases || "Não";
+  document.getElementById('eq-infra-water').value = eq.infra_water || "Não";
+  document.getElementById('eq-norm-ref').value = eq.normative_reference || "RDC 50 Anvisa";
+  document.getElementById('eq-sectors').value = eq.applicable_sectors || "";
+  document.getElementById('eq-status').value = eq.status || "Ativo";
+  
+  openModal('modal-equipment');
+}
+
+function saveEquipmentForm(e) {
+  e.preventDefault();
+  
+  const eqData = {
+    code: document.getElementById('eq-code').value.toUpperCase().trim(),
+    name: document.getElementById('eq-name').value.trim(),
+    category: document.getElementById('eq-category').value,
+    subcategory: document.getElementById('eq-subcat').value.trim(),
+    description: document.getElementById('eq-desc').value.trim(),
+    min_price: Number(document.getElementById('eq-min-price').value),
+    avg_price: Number(document.getElementById('eq-avg-price').value),
+    max_price: Number(document.getElementById('eq-max-price').value),
+    manufacturers: document.getElementById('eq-manufacturers').value.trim(),
+    life_span_years: Number(document.getElementById('eq-lifespan').value),
+    maintenance_interval_months: Number(document.getElementById('eq-maint-int').value),
+    calibration_required: document.getElementById('eq-calib').value === 'true',
+    criticality: document.getElementById('eq-criticality').value,
+    complexity: document.getElementById('eq-complexity').value,
+    infra_electricity: document.getElementById('eq-infra-elec').value.trim(),
+    infra_gases: document.getElementById('eq-infra-gases').value.trim(),
+    infra_water: document.getElementById('eq-infra-water').value.trim(),
+    normative_reference: document.getElementById('eq-norm-ref').value.trim(),
+    applicable_sectors: document.getElementById('eq-sectors').value.trim(),
+    status: document.getElementById('eq-status').value
+  };
+  
+  showLoading("Gravando equipamento no catálogo...");
+  closeModal('modal-equipment');
+  
+  google.script.run
+    .withSuccessHandler(updatedList => {
+      state.allEquipment = updatedList;
+      renderEquipmentTable(updatedList);
+      hideLoading();
+      showToast("Equipamento salvo com sucesso no catálogo.", "success");
+    })
+    .saveEquipment(eqData, state.currentUser.email);
+}
+
+// ==================== ADMIN: SIZING RULES ====================
+
+function loadRules() {
+  showLoading("Carregando regras de dimensionamento...");
+  google.script.run
+    .withSuccessHandler(rules => {
+      state.allRules = rules || [];
+      renderRulesTable(state.allRules);
+      hideLoading();
+    })
+    .listRules();
+}
+
+function renderRulesTable(rules) {
+  const tbody = document.getElementById('admin-rules-table-body');
+  
+  if (!rules || rules.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--secondary-light); padding:20px 0;">Nenhuma regra cadastrada.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = rules.map(rule => {
+    // Condition string
+    const condStr = `SE ${rule.parameter} ${rule.operator} ${rule.value}`;
+    
+    // Formula calculation details string
+    let calcDetails = "";
+    if (rule.calculation_type === 'fixed') calcDetails = `Qtd Fixa: ${rule.formula_factor}`;
+    else if (rule.calculation_type === 'per_parameter') calcDetails = `Qtd por Unid: ${rule.formula_factor}`;
+    else if (rule.calculation_type === 'rounded_ratio') calcDetails = `1 a cada ${rule.formula_factor}`;
+    
+    let classBadge = 'badge-info';
+    if (rule.classification === 'Obrigatório') classBadge = 'badge-danger';
+    else if (rule.classification === 'Recomendado') classBadge = 'badge-success';
+    
+    const reservePercent = rule.reserve_factor ? `${rule.reserve_factor * 100}%` : '0%';
+    
+    return `
+      <tr>
+        <td style="font-weight:600; color:var(--primary);">${rule.name}</td>
+        <td style="font-weight:500;">${rule.sector}</td>
+        <td><code>${condStr}</code></td>
+        <td><code>${rule.equipment_code}</code></td>
+        <td>${rule.calculation_type}</td>
+        <td style="font-weight:600; text-align:center;">${rule.formula_factor}</td>
+        <td style="text-align:center;">${reservePercent}</td>
+        <td><span class="badge ${classBadge}">${rule.classification}</span></td>
+        <td><span class="badge ${rule.active === true || rule.active === 'TRUE' ? 'badge-success' : 'badge-danger'}">${rule.active === true || rule.active === 'TRUE' ? 'Ativa' : 'Inativa'}</span></td>
+        <td style="text-align:center;">
+          <button class="btn btn-secondary btn-sm" onclick="editRule('${rule.id}')">Editar</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Populate Wizard/Admin rule selectors
+function populateRulesFormDropdowns() {
+  // Setors dropdown
+  const ruleSectSelect = document.getElementById('rule-sector');
+  const searchSectSelect = document.getElementById('search-rule-sector');
+  
+  const optionsHtml = SECTORS_METADATA.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  ruleSectSelect.innerHTML = optionsHtml;
+  searchSectSelect.innerHTML = '<option value="ALL">Todos os Setores</option>' + optionsHtml;
+}
+
+function populateRulesEquipmentDropdown(equipment) {
+  const select = document.getElementById('rule-eq-code');
+  select.innerHTML = equipment.map(eq => `
+    <option value="${eq.code}">${eq.code} - ${eq.name}</option>
+  `).join('');
+}
+
+// Filter Rules table in Admin View
+function filterRulesList() {
+  const sect = document.getElementById('search-rule-sector').value;
+  
+  const filtered = state.allRules.filter(rule => {
+    return (sect === 'ALL' || rule.sector === sect);
+  });
+  
+  renderRulesTable(filtered);
+}
+
+// Open rule modal
+function openRuleModal() {
+  document.getElementById('rule-modal-title').innerText = "Criar Nova Regra de Dimensionamento";
+  document.getElementById('rule-id').value = "";
+  
+  // Clear fields
+  document.getElementById('rule-name').value = "";
+  document.getElementById('rule-sector').selectedIndex = 0;
+  document.getElementById('rule-param').selectedIndex = 0;
+  document.getElementById('rule-operator').value = ">";
+  document.getElementById('rule-val-condition').value = 0;
+  document.getElementById('rule-eq-code').selectedIndex = 0;
+  document.getElementById('rule-calc-type').value = "per_parameter";
+  document.getElementById('rule-factor').value = 1;
+  document.getElementById('rule-reserve').value = 0;
+  document.getElementById('rule-classification').value = "Obrigatório";
+  document.getElementById('rule-justification').value = "";
+  document.getElementById('rule-ref').value = "Anvisa RDC 50";
+  document.getElementById('rule-active').value = "true";
+  
+  openModal('modal-rule');
+}
+
+function editRule(id) {
+  const r = state.allRules.find(rule => rule.id === id);
+  if (!r) return;
+  
+  document.getElementById('rule-modal-title').innerText = `Editar Regra: ${r.id}`;
+  document.getElementById('rule-id').value = r.id;
+  document.getElementById('rule-name').value = r.name;
+  document.getElementById('rule-sector').value = r.sector;
+  document.getElementById('rule-param').value = r.parameter;
+  document.getElementById('rule-operator').value = r.operator;
+  document.getElementById('rule-val-condition').value = r.value;
+  document.getElementById('rule-eq-code').value = r.equipment_code;
+  document.getElementById('rule-calc-type').value = r.calculation_type;
+  document.getElementById('rule-factor').value = r.formula_factor;
+  document.getElementById('rule-reserve').value = r.reserve_factor || 0;
+  document.getElementById('rule-classification').value = r.classification;
+  document.getElementById('rule-justification').value = r.justification;
+  document.getElementById('rule-ref').value = r.normative_reference || "Anvisa RDC 50";
+  document.getElementById('rule-active').value = String(r.active);
+  
+  openModal('modal-rule');
+}
+
+function saveRuleForm(e) {
+  e.preventDefault();
+  
+  const ruleData = {
+    id: document.getElementById('rule-id').value,
+    name: document.getElementById('rule-name').value.trim(),
+    sector: document.getElementById('rule-sector').value,
+    parameter: document.getElementById('rule-param').value,
+    operator: document.getElementById('rule-operator').value,
+    value: Number(document.getElementById('rule-val-condition').value),
+    equipment_code: document.getElementById('rule-eq-code').value,
+    calculation_type: document.getElementById('rule-calc-type').value,
+    formula_factor: Number(document.getElementById('rule-factor').value),
+    reserve_factor: Number(document.getElementById('rule-reserve').value),
+    classification: document.getElementById('rule-classification').value,
+    justification: document.getElementById('rule-justification').value.trim(),
+    normative_reference: document.getElementById('rule-ref').value.trim(),
+    active: document.getElementById('rule-active').value === 'true'
+  };
+  
+  showLoading("Gravando regra de cálculo...");
+  closeModal('modal-rule');
+  
+  google.script.run
+    .withSuccessHandler(updatedRules => {
+      state.allRules = updatedRules;
+      renderRulesTable(updatedRules);
+      hideLoading();
+      showToast("Regra de dimensionamento gravada com sucesso.", "success");
+    })
+    .saveRule(ruleData, state.currentUser.email);
+}
+
+// ==================== ADMIN: AUDIT LOGS ====================
+
+function loadAuditLogs() {
+  showLoading("Carregando registros de auditoria...");
+  google.script.run
+    .withSuccessHandler(logs => {
+      const tbody = document.getElementById('admin-logs-table-body');
+      
+      if (!logs || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--secondary-light); padding:20px 0;">Nenhum registro de log encontrado.</td></tr>`;
+        hideLoading();
+        return;
+      }
+      
+      tbody.innerHTML = logs.map(log => `
+        <tr>
+          <td><code style="font-size:0.75rem;">${log.id}</code></td>
+          <td style="font-size:0.8rem; color:var(--secondary-light);">${formatDate(log.timestamp)}</td>
+          <td style="font-weight:600;">${log.user_email}</td>
+          <td><span class="badge badge-info" style="font-family:var(--font-display);">${log.action}</span></td>
+          <td><code style="font-size:0.75rem;">${log.project_id || '-'}</code></td>
+          <td style="font-size:0.85rem; line-height:1.4;">${log.details}</td>
+        </tr>
+      `).join('');
+      
+      hideLoading();
+    })
+    .getAuditLogs();
+}
+
+function resetDatabaseSystem() {
+  if (confirm("ATENÇÃO: Isso excluirá todas as tabelas atuais do banco de dados (inclusive projetos salvos) e recriará as tabelas com os equipamentos e as novas regras de dimensionamento padrão. Deseja prosseguir?")) {
+    showLoading("Resetando banco de dados na planilha...");
+    google.script.run
+      .withSuccessHandler(msg => {
+        showToast(msg, "success");
+        loadDashboard();
+        switchTab('dashboard');
+        hideLoading();
+      })
+      .withFailureHandler(err => {
+        showToast("Erro ao resetar o banco de dados.", "danger");
+        hideLoading();
+      })
+      .resetDatabase();
+  }
+}
+
+// ==================== ADMIN: USERS MANAGEMENT ====================
+
+state.allUsers = [];
+
+function loadUsers() {
+  showLoading("Carregando lista de usuários...");
+  google.script.run
+    .withSuccessHandler(users => {
+      state.allUsers = users;
+      renderUsersTable(users);
+      hideLoading();
+    })
+    .withFailureHandler(err => {
+      showToast("Erro ao carregar lista de usuários.", "danger");
+      hideLoading();
+    })
+    .listUsers();
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('admin-users-table-body');
+  
+  if (!tbody) return;
+  
+  if (!users || users.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--secondary-light); padding:20px 0;">Nenhum usuário cadastrado.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = users.map(user => {
+    const isActive = (user.active === true || String(user.active).toLowerCase() === 'true' || user.active === 'Sim');
+    const statusBadge = isActive 
+      ? '<span class="badge badge-success">Ativo</span>' 
+      : '<span class="badge badge-danger">Inativo</span>';
+      
+    return `
+      <tr>
+        <td style="font-weight:600;">${user.name}</td>
+        <td>${user.email}</td>
+        <td><span class="badge badge-info">${user.role}</span></td>
+        <td>${statusBadge}</td>
+        <td style="text-align:right;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="openEditUserModal('${user.id}')" style="padding:4px 8px; margin-right:4px;">
+            <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button type="button" class="btn btn-danger btn-sm" onclick="deleteUserConfirm('${user.id}')" style="padding:4px 8px;" ${user.email.toLowerCase() === state.currentUser.email.toLowerCase() ? 'disabled' : ''}>
+            <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openNewUserModal() {
+  document.getElementById('user-modal-title').innerText = "Cadastrar Novo Usuário";
+  document.getElementById('user-id').value = "";
+  document.getElementById('user-name').value = "";
+  document.getElementById('user-email').value = "";
+  document.getElementById('user-email').disabled = false;
+  document.getElementById('user-role').value = "Consultor";
+  document.getElementById('user-active').value = "true";
+  
+  openModal('modal-user');
+}
+
+function openEditUserModal(userId) {
+  const user = state.allUsers.find(u => u.id === userId);
+  if (!user) return;
+  
+  document.getElementById('user-modal-title').innerText = "Editar Usuário";
+  document.getElementById('user-id').value = user.id;
+  document.getElementById('user-name').value = user.name;
+  document.getElementById('user-email').value = user.email;
+  // Disable email editing for self to prevent locking out
+  document.getElementById('user-email').disabled = (user.email.toLowerCase() === state.currentUser.email.toLowerCase());
+  document.getElementById('user-role').value = user.role;
+  
+  const isActive = (user.active === true || String(user.active).toLowerCase() === 'true' || user.active === 'Sim');
+  document.getElementById('user-active').value = String(isActive);
+  
+  openModal('modal-user');
+}
+
+function saveUserForm(e) {
+  e.preventDefault();
+  
+  const userData = {
+    id: document.getElementById('user-id').value,
+    name: document.getElementById('user-name').value,
+    email: document.getElementById('user-email').value,
+    role: document.getElementById('user-role').value,
+    active: document.getElementById('user-active').value === 'true'
+  };
+  
+  showLoading("Gravando usuário...");
+  closeModal('modal-user');
+  
+  google.script.run
+    .withSuccessHandler(updatedUsers => {
+      state.allUsers = updatedUsers;
+      renderUsersTable(updatedUsers);
+      hideLoading();
+      showToast("Usuário gravado com sucesso.", "success");
+      
+      // If editing self and changing role, reload context
+      if (userData.email.toLowerCase() === state.currentUser.email.toLowerCase()) {
+        showLoading("Recarregando permissões...");
+        google.script.run
+          .withSuccessHandler(user => {
+            state.currentUser = user;
+            updateUserWidget();
+            applyAccessControl();
+            if (user.role === 'Unauthorised') {
+              location.reload();
+            }
+            hideLoading();
+          })
+          .getCurrentUser();
+      }
+    })
+    .withFailureHandler(err => {
+      showToast("Erro ao gravar usuário.", "danger");
+      hideLoading();
+    })
+    .saveUser(userData, state.currentUser.email);
+}
+
+function deleteUserConfirm(userId) {
+  const user = state.allUsers.find(u => u.id === userId);
+  if (!user) return;
+  
+  if (confirm(`Tem certeza que deseja excluir o usuário ${user.name} (${user.email})?`)) {
+    showLoading("Excluindo usuário...");
+    google.script.run
+      .withSuccessHandler(updatedUsers => {
+        state.allUsers = updatedUsers;
+        renderUsersTable(updatedUsers);
+        hideLoading();
+        showToast("Usuário excluído com sucesso.", "success");
+      })
+      .withFailureHandler(err => {
+        showToast("Erro ao excluir usuário.", "danger");
+        hideLoading();
+      })
+      .deleteUser(userId, state.currentUser.email);
+  }
+}
+
+function exportManualToGoogleDocs() {
+  showLoading("Criando documento no Google Drive...");
+  google.script.run
+    .withSuccessHandler(url => {
+      hideLoading();
+      showToast("Manual exportado com sucesso no Google Docs!", "success");
+      window.open(url, '_blank');
+    })
+    .withFailureHandler(err => {
+      hideLoading();
+      showToast("Erro ao exportar o manual para o Google Docs. Verifique as permissões de Drive/Docs.", "danger");
+      console.error(err);
+    })
+    .createManualGoogleDoc();
+}
+</script>

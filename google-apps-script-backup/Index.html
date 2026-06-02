@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <base target="_top">
+    <title>PRODIME - Dimensionamento de Equipamentos Médicos</title>
+    <!-- Import Stylesheets -->
+    <?!= include('Styles'); ?>
+  </head>
+  <body>
+    <!-- Access Denied Blocker Screen -->
+    <div id="access-denied-screen" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color:#0f172a; color:white; z-index:2000; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; font-family:'Plus Jakarta Sans', sans-serif;">
+      <div style="background-color:rgba(239,68,68,0.1); color:#ef4444; width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:24px; box-shadow:0 0 20px rgba(239,68,68,0.2);">
+        <svg style="width:40px; height:40px; stroke:currentColor; stroke-width:2; fill:none;" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <h1 style="font-family:'Outfit', sans-serif; font-size:2rem; font-weight:700; margin-bottom:12px; background:linear-gradient(to right, #ffffff, #94a3b8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Acesso Não Autorizado</h1>
+      <p style="color:#94a3b8; max-width:450px; line-height:1.6; font-size:1rem; margin-bottom:28px;" id="access-denied-message">O e-mail da sua conta institucional não está cadastrado no sistema PRODIME.</p>
+      <div style="font-size:0.9rem; padding:12px 20px; background-color:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.1); color:#cbd5e1; max-width:500px;" id="access-denied-user-info">
+        Identificação: <strong>-</strong>
+      </div>
+      <p style="color:#64748b; font-size:0.8rem; margin-top:32px;">Se você faz parte da instituição, entre em contato com o Engenheiro Clínico Administrador para solicitar o cadastro do seu acesso.</p>
+    </div>
+
+    <!-- App Layout Container -->
+    <div class="app-container">
+      
+      <!-- Mobile Top Header -->
+      <header class="mobile-header no-print">
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="brand" style="border-bottom: none; padding: 0; margin: 0; background: none; box-shadow: none;">
+          <div class="brand-icon" style="width: 32px; height: 32px; font-size: 1rem; border-radius: var(--radius-sm);">P</div>
+          <span class="brand-name" style="font-size: 1.1rem; color: white;">PRODIME</span>
+        </div>
+        <div style="width: 24px;"></div>
+      </header>
+      
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar no-print">
+        <div class="brand">
+          <div class="brand-icon">P</div>
+          <span class="brand-name">PRODIME</span>
+        </div>
+        
+        <nav class="nav-menu">
+          <a class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+          </a>
+          <a class="nav-item" data-tab="projects" onclick="switchTab('projects')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Projetos
+          </a>
+          <a class="nav-item" data-tab="admin-equipment" onclick="switchTab('admin-equipment')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            Equipamentos (Base)
+          </a>
+          <a class="nav-item" data-tab="admin-rules" onclick="switchTab('admin-rules')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            Regras de Cálculo
+          </a>
+          <a class="nav-item" data-tab="admin-users" onclick="switchTab('admin-users')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm14 10v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+            Usuários
+          </a>
+          <a class="nav-item" data-tab="admin-logs" onclick="switchTab('admin-logs')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Auditoria & Logs
+          </a>
+        </nav>
+        
+        <!-- User Context Widget -->
+        <div class="user-widget">
+          <div class="user-info">
+            <div class="user-avatar" id="widget-avatar">EC</div>
+            <div class="user-details">
+              <span class="user-name" id="widget-username">Carregando...</span>
+              <span class="user-role" id="widget-userrole">Admin</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- Main Content Panel -->
+      <main class="main-content">
+        
+        <!-- ==================== DASHBOARD VIEW ==================== -->
+        <section id="tab-dashboard" class="tab-section active">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Dashboard Operacional</h1>
+              <p class="page-subtitle">Visão geral das estatísticas do PRODIME.</p>
+            </div>
+            <button class="btn btn-primary" onclick="startNewProject()">
+              <svg class="nav-icon" style="width:16px;height:16px;stroke:white;" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+              Novo Projeto
+            </button>
+          </div>
+          
+          <!-- Statistics Grid -->
+          <div class="dashboard-grid">
+            <div class="card-premium stats-card stat-projects">
+              <div class="stats-icon-wrapper">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div class="stats-info">
+                <span class="stats-value" id="stat-total-projects">0</span>
+                <span class="stats-label">Projetos Ativos</span>
+              </div>
+            </div>
+            
+            <div class="card-premium stats-card stat-eq">
+              <div class="stats-icon-wrapper">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              </div>
+              <div class="stats-info">
+                <span class="stats-value" id="stat-total-equipment">0</span>
+                <span class="stats-label">Equipamentos Cadastrados</span>
+              </div>
+            </div>
+            
+            <div class="card-premium stats-card stat-rules">
+              <div class="stats-icon-wrapper">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              </div>
+              <div class="stats-info">
+                <span class="stats-value" id="stat-total-rules">0</span>
+                <span class="stats-label">Regras Ativas</span>
+              </div>
+            </div>
+            
+            <div class="card-premium stats-card stat-investment">
+              <div class="stats-icon-wrapper">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div class="stats-info">
+                <span class="stats-value" id="stat-total-investment">R$ 0,00</span>
+                <span class="stats-label">Investimento Total Estimado</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Mid Section -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+            <!-- Welcome Banner and System info -->
+            <div class="card-premium" style="display:flex; flex-direction:column; gap: 16px;">
+              <h2 class="card-title" style="color:var(--primary);">Bem-vindo ao PRODIME</h2>
+              <p style="font-size: 0.95rem; line-height: 1.6; color: var(--secondary-light);">
+                O PRODIME é um sistema inteligente estruturado para calcular a estimativa e dimensionamento do parque de equipamentos médico-hospitalares de estabelecimentos assistenciais de saúde (EAS).
+              </p>
+              <p style="font-size: 0.95rem; line-height: 1.6; color: var(--secondary-light);">
+                Nosso motor cruza regras parametrizadas baseadas nas referências normativas da <strong>RDC nº 50/2002 da Anvisa</strong> com a infraestrutura assistencial que você definir no cadastro do projeto (número de leitos, salas de exame, salas cirúrgicas, etc.).
+              </p>
+              <div style="margin-top: 10px; display:flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="switchTab('projects')">Ir para Projetos</button>
+                <button class="btn btn-secondary" onclick="switchTab('admin-equipment')">Ver Equipamentos</button>
+              </div>
+            </div>
+            
+            <!-- Recent Activities -->
+            <div class="card-premium">
+              <h2 class="card-title" style="margin-bottom: 14px;">Atividades Recentes</h2>
+              <div id="recent-logs-list" style="display:flex; flex-direction:column; gap: 12px; font-size:0.8rem;">
+                <div style="color:var(--secondary-light); text-align:center; padding: 20px 0;">Nenhuma atividade recente.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- ==================== PROJECTS LIST VIEW ==================== -->
+        <section id="tab-projects" class="tab-section">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Projetos de Dimensionamento</h1>
+              <p class="page-subtitle">Visualize e gerencie os dimensionamentos ativos.</p>
+            </div>
+            <button class="btn btn-primary" onclick="startNewProject()">
+              <svg class="nav-icon" style="width:16px;height:16px;stroke:white;" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+              Novo Projeto
+            </button>
+          </div>
+          
+          <div class="card-premium">
+            <div class="table-wrapper">
+              <table class="table-premium" id="projects-table">
+                <thead>
+                  <tr>
+                    <th>Nome do Projeto</th>
+                    <th>Hospital / EAS</th>
+                    <th>Localidade</th>
+                    <th>Tipo / Perfil</th>
+                    <th>Responsável</th>
+                    <th>Última Alt.</th>
+                    <th class="no-print" style="width: 230px; text-align: center;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="projects-table-body">
+                  <tr>
+                    <td colspan="7" style="text-align: center; color: var(--secondary-light); padding: 40px 0;">
+                      Nenhum projeto cadastrado. Clique em "Novo Projeto" para começar.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- ==================== PROJECT WIZARD VIEW ==================== -->
+        <section id="tab-project-wizard" class="tab-section">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="wizard-title">Novo Projeto de Dimensionamento</h1>
+              <p class="page-subtitle">Configure o EAS passo a passo para calcular o parque recomendado.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="switchTab('projects')">Voltar para Lista</button>
+          </div>
+          
+          <!-- Wizard Indicators -->
+          <div class="wizard-steps no-print">
+            <div class="step-indicator active" id="step-ind-1">
+              <div class="step-number">1</div>
+              <span>Identificação</span>
+            </div>
+            <div class="step-indicator" id="step-ind-2">
+              <div class="step-number">2</div>
+              <span>Estrutura / Setores</span>
+            </div>
+            <div class="step-indicator" id="step-ind-3">
+              <div class="step-number">3</div>
+              <span>Parâmetros Assistenciais</span>
+            </div>
+            <div class="step-indicator" id="step-ind-4">
+              <div class="step-number">4</div>
+              <span>Dimensionamento & Ajustes</span>
+            </div>
+            <div class="step-indicator" id="step-ind-5">
+              <div class="step-number">5</div>
+              <span>Resumo & Relatório</span>
+            </div>
+          </div>
+          
+          <!-- WIZARD STEP 1: IDENTIFICATION FORM -->
+          <div class="card-premium" id="wizard-step-1">
+            <div class="card-header-flex">
+              <h2 class="card-title">Passo 1: Dados Gerais do Projeto</h2>
+              <span class="badge badge-info">Identificação</span>
+            </div>
+            <form id="project-form" onsubmit="event.preventDefault(); nextStep(2);">
+              <div class="form-grid">
+                <div class="form-group col-span-2">
+                  <label class="form-label">Nome do Projeto *</label>
+                  <input type="text" class="form-control" id="p-name" placeholder="Ex: Ampliação UTI Hospital Regional" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Nome da Unidade Hospitalar / EAS *</label>
+                  <input type="text" class="form-control" id="p-hospital" placeholder="Ex: Hospital Municipal Central" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tipo de Estabelecimento *</label>
+                  <select class="form-control" id="p-est-type" required>
+                    <option value="Hospital Geral">Hospital Geral</option>
+                    <option value="Hospital Especializado">Hospital Especializado</option>
+                    <option value="Hospital-Dia">Hospital-Dia</option>
+                    <option value="Clínica Ambulatorial">Clínica Ambulatorial</option>
+                    <option value="Centro de Diagnóstico">Centro de Diagnóstico por Imagem</option>
+                    <option value="Unidade Básica de Saúde">Unidade Básica de Saúde</option>
+                    <option value="Pronto Atendimento">Pronto Atendimento</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Cidade *</label>
+                  <input type="text" class="form-control" id="p-city" placeholder="Ex: São Paulo" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Estado (UF) *</label>
+                  <input type="text" class="form-control" id="p-state" placeholder="Ex: SP" maxlength="2" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Perfil Administrativo</label>
+                  <select class="form-control" id="p-profile">
+                    <option value="Público">Público (SUS)</option>
+                    <option value="Privado">Privado</option>
+                    <option value="Filantrópico">Filantrópico</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tipo de Projeto</label>
+                  <select class="form-control" id="p-proj-type">
+                    <option value="Novo Projeto">Novo Projeto (Implantação do Zero)</option>
+                    <option value="Ampliação">Ampliação de Setores</option>
+                    <option value="Adequação">Adequação / Retrofit</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Responsável Técnico (Eng. Clínico / Gestor) *</label>
+                  <input type="text" class="form-control" id="p-manager" placeholder="Ex: Eng. Roberto Santos - CREA XXX" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Moeda de Referência</label>
+                  <select class="form-control" id="p-currency">
+                    <option value="BRL">Real (R$ - BRL)</option>
+                    <option value="USD">Dólar (US$ - USD)</option>
+                  </select>
+                </div>
+                <div class="form-group col-span-2">
+                  <label class="form-label">Observações Gerais</label>
+                  <textarea class="form-control" id="p-notes" rows="3" placeholder="Informações adicionais sobre o projeto..."></textarea>
+                </div>
+              </div>
+              <div style="margin-top: 24px; display:flex; justify-content: flex-end; gap:12px;">
+                <button type="submit" class="btn btn-primary">Avançar: Seleção de Setores</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- WIZARD STEP 2: SECTOR SELECTION -->
+          <div class="card-premium" id="wizard-step-2" style="display:none;">
+            <div class="card-header-flex">
+              <h2 class="card-title">Passo 2: Seleção de Setores Hospitalares</h2>
+              <span class="badge badge-info">Estrutura Física</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--secondary-light); margin-bottom: 20px;">
+              Marque quais setores farão parte deste projeto de dimensionamento. O motor carregará os parâmetros exigidos para cada setor.
+            </p>
+            
+            <div class="sectors-grid" id="sectors-checkbox-container">
+              <!-- Dynamically populated from standard metadata -->
+            </div>
+            
+            <div style="margin-top: 24px; display:flex; justify-content: space-between;">
+              <button class="btn btn-secondary" onclick="prevStep(1)">Voltar</button>
+              <button class="btn btn-primary" onclick="nextStep(3)">Avançar: Informar Parâmetros</button>
+            </div>
+          </div>
+          
+          <!-- WIZARD STEP 3: SECTOR PARAMETERS -->
+          <div class="card-premium" id="wizard-step-3" style="display:none;">
+            <div class="card-header-flex">
+              <h2 class="card-title">Passo 3: Parâmetros Quantitativos dos Setores</h2>
+              <span class="badge badge-info">Dados Assistenciais</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--secondary-light); margin-bottom: 20px;">
+              Informe as quantidades físicas e operacionais de cada setor ativo. Esses valores serão utilizados pelas fórmulas de dimensionamento da RDC 50 e melhores práticas.
+            </p>
+            
+            <div id="parameters-sections-container">
+              <!-- Dynamically rendered input blocks per active sector -->
+            </div>
+            
+            <div style="margin-top: 24px; display:flex; justify-content: space-between;">
+              <button class="btn btn-secondary" onclick="prevStep(2)">Voltar</button>
+              <button class="btn btn-primary" onclick="nextStep(4)">Calcular Dimensionamento</button>
+            </div>
+          </div>
+          
+          <!-- WIZARD STEP 4: SIZING RESULTS & MANUAL ADJUSTMENTS -->
+          <div class="card-premium" id="wizard-step-4" style="display:none;">
+            <div class="card-header-flex">
+              <h2 class="card-title">Passo 4: Dimensionamento Recomendado & Ajustes Manuais</h2>
+              <span class="badge badge-success" id="sizing-results-badge">Resultados Gerados</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--secondary-light); margin-bottom: 20px;">
+              Veja a lista recomendada de equipamentos calculada pelo motor do PRODIME. Como administrador ou engenheiro clínico, você pode realizar <strong>ajustes de quantidade</strong> para adequação comercial ou clínica.
+            </p>
+            
+            <div style="margin-bottom: 16px; display:flex; justify-content: space-between; align-items:center;">
+              <div style="display:flex; gap: 10px;">
+                <select class="form-control btn-sm" id="filter-result-sector" onchange="filterWizardResults()">
+                  <option value="ALL">Todos os Setores</option>
+                </select>
+                <select class="form-control btn-sm" id="filter-result-class" onchange="filterWizardResults()">
+                  <option value="ALL">Todas as Classificações</option>
+                  <option value="Obrigatório">Somente Obrigatórios</option>
+                  <option value="Recomendado">Somente Recomendados</option>
+                  <option value="Opcional">Somente Opcionais</option>
+                </select>
+              </div>
+              <div style="font-size: 0.85rem; font-weight: 600;">
+                Itens Calculados: <span id="span-results-count" style="color:var(--primary)">0</span> | Investimento Parcial: <span id="span-results-cost" style="color:var(--success)">R$ 0,00</span>
+              </div>
+            </div>
+            
+            <div class="table-wrapper">
+              <table class="table-premium" id="results-table">
+                <thead>
+                  <tr>
+                    <th>Setor</th>
+                    <th>Código</th>
+                    <th>Equipamento</th>
+                    <th>Categoria</th>
+                    <th style="text-align: center;">Qtd. Calc</th>
+                    <th style="text-align: center;">Qtd. Recom.</th>
+                    <th style="text-align: center; width: 100px;">Qtd. Ajust.</th>
+                    <th>Preço Médio Unit.</th>
+                    <th>Custo Total</th>
+                    <th>Classificação</th>
+                    <th>Justificativa Técnica (Norma)</th>
+                    <th class="no-print" style="width: 80px; text-align: center;">Ajustar</th>
+                  </tr>
+                </thead>
+                <tbody id="results-table-body">
+                  <!-- Dynamically loaded calculated list -->
+                </tbody>
+              </table>
+            </div>
+            
+            <div style="margin-top: 24px; display:flex; justify-content: space-between;">
+              <button class="btn btn-secondary" onclick="prevStep(3)">Voltar</button>
+              <button class="btn btn-primary" onclick="nextStep(5)">Avançar: Resumo & Relatório</button>
+            </div>
+          </div>
+          
+          <!-- WIZARD STEP 5: FINAL REPORT & SUMMARY -->
+          <div class="card-premium" id="wizard-step-5" style="display:none;">
+            <div class="card-header-flex">
+              <h2 class="card-title">Passo 5: Relatório Final & Resumo Técnico/Financeiro</h2>
+              <div class="no-print" style="display:flex; gap: 8px;">
+                <button class="btn btn-secondary btn-sm" onclick="window.print()">
+                  <svg class="nav-icon" style="width:14px;height:14px;" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4"/></svg>
+                  Imprimir PDF
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="exportToExcel()">
+                  Exportar Planilha (CSV)
+                </button>
+              </div>
+            </div>
+            
+            <!-- Report Layout -->
+            <div class="report-print-area">
+              
+              <!-- Report Cover Header -->
+              <div style="border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 24px;">
+                <div style="display:flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <h1 style="font-family:var(--font-display); font-size: 2.2rem; font-weight:700; color:var(--primary);">PRODIME</h1>
+                    <h2 style="font-family:var(--font-primary); font-size: 1.1rem; color: var(--secondary-light); margin-top:4px;">Relatório de Dimensionamento de Equipamentos Hospitalares</h2>
+                  </div>
+                  <div style="text-align: right; font-size:0.85rem; color: var(--secondary-light);">
+                    <div>ID Projeto: <span id="rep-proj-id" style="font-weight:600;">-</span></div>
+                    <div>Data de Emissão: <span id="rep-date" style="font-weight:600;">-</span></div>
+                    <div>Versão Base: <span style="font-weight:600;">v2.0 (Anvisa RDC 50)</span></div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Metadata Grid -->
+              <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; background-color:#f8fafc; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div>
+                  <div style="font-size:0.75rem; text-transform:uppercase; color:var(--secondary-light); font-weight:600;">Projeto</div>
+                  <div style="font-size:0.95rem; font-weight:600;" id="rep-proj-name">-</div>
+                </div>
+                <div>
+                  <div style="font-size:0.75rem; text-transform:uppercase; color:var(--secondary-light); font-weight:600;">Estabelecimento</div>
+                  <div style="font-size:0.95rem; font-weight:600;" id="rep-hospital-name">-</div>
+                </div>
+                <div>
+                  <div style="font-size:0.75rem; text-transform:uppercase; color:var(--secondary-light); font-weight:600;">Localidade</div>
+                  <div style="font-size:0.95rem; font-weight:600;" id="rep-location">-</div>
+                </div>
+                <div>
+                  <div style="font-size:0.75rem; text-transform:uppercase; color:var(--secondary-light); font-weight:600;">Tipo de EAS / Perfil</div>
+                  <div style="font-size:0.95rem; font-weight:600;" id="rep-eas-type">-</div>
+                </div>
+                <div>
+                  <div style="font-size:0.75rem; text-transform:uppercase; color:var(--secondary-light); font-weight:600;">Responsável Técnico</div>
+                  <div style="font-size:0.95rem; font-weight:600;" id="rep-manager-name">-</div>
+                </div>
+                <div>
+                  <div style="font-size:0.75rem; text-transform:uppercase; color:var(--secondary-light); font-weight:600;">Moeda / Preços</div>
+                  <div style="font-size:0.95rem; font-weight:600;" id="rep-currency-info">-</div>
+                </div>
+              </div>
+              
+              <!-- Dimensionamento Overview Stats -->
+              <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px;">
+                <div style="text-align: center; border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md);">
+                  <div style="font-size:1.8rem; font-weight:700; color:var(--primary);" id="rep-stat-sectors">0</div>
+                  <div style="font-size:0.8rem; color:var(--secondary-light);">Setores Dimensionados</div>
+                </div>
+                <div style="text-align: center; border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md);">
+                  <div style="font-size:1.8rem; font-weight:700; color:var(--primary);" id="rep-stat-beds">0</div>
+                  <div style="font-size:0.8rem; color:var(--secondary-light);">Capacidade (Leitos/Salas)</div>
+                </div>
+                <div style="text-align: center; border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md);">
+                  <div style="font-size:1.8rem; font-weight:700; color:var(--primary);" id="rep-stat-items">0</div>
+                  <div style="font-size:0.8rem; color:var(--secondary-light);">Qtd Total Equipamentos</div>
+                </div>
+                <div style="text-align: center; border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); background-color: var(--success-bg); border-color:#bbf7d0;">
+                  <div style="font-size:1.8rem; font-weight:700; color:var(--success);" id="rep-stat-cost">R$ 0,00</div>
+                  <div style="font-size:0.8rem; color:var(--secondary-light);">Investimento Estimado</div>
+                </div>
+              </div>
+              
+              <!-- Financial & Sizing Breakdown -->
+              <div class="finance-summary-grid" style="margin-bottom: 30px;">
+                <div>
+                  <h3 style="font-family:var(--font-display); font-size:1.1rem; margin-bottom:12px;">Investimento Estimado por Setor</h3>
+                  <div class="finance-breakdown-list" id="rep-sector-cost-list">
+                    <!-- Loaded dynamically -->
+                  </div>
+                </div>
+                <div>
+                  <h3 style="font-family:var(--font-display); font-size:1.1rem; margin-bottom:12px;">Composição por Relevância</h3>
+                  <div class="finance-breakdown-list" id="rep-class-cost-list">
+                    <!-- Loaded dynamically -->
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Detailed Sizing Table -->
+              <h3 style="font-family:var(--font-display); font-size:1.1rem; margin-bottom:12px;">Detalhamento Completo do Parque Recomendado</h3>
+              <div class="table-wrapper" style="margin-bottom: 30px;">
+                <table class="table-premium" id="rep-details-table">
+                  <thead>
+                    <tr>
+                      <th>Setor</th>
+                      <th>Código</th>
+                      <th>Equipamento</th>
+                      <th style="text-align: center;">Qtd Recomendada</th>
+                      <th style="text-align: center;">Qtd Final (Ajustada)</th>
+                      <th>Custo Unitário</th>
+                      <th>Custo Total</th>
+                      <th>Classificação</th>
+                      <th>Justificativa de Dimensionamento / Norma</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rep-details-table-body">
+                    <!-- Loaded dynamically -->
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Regulatory Disclaimer Banner -->
+              <div class="regulatory-banner">
+                <strong>Observação Regulatória Obrigatória:</strong> Este relatório apresenta uma estimativa técnica de dimensionamento de equipamentos médico-hospitalares com base nos parâmetros informados pelo usuário, nas regras cadastradas no sistema, na base de dados de equipamentos e em referências regulatórias aplicáveis, incluindo a RDC nº 50/2002 da Anvisa quando pertinente. O resultado não substitui a análise de responsável técnico habilitado, nem a aprovação pelos órgãos reguladores competentes.
+              </div>
+              
+              <!-- Technical Appendix -->
+              <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <h4 style="font-family:var(--font-display); font-size:1rem; margin-bottom:8px; color:var(--secondary-light);">Apêndice Técnico e Premissas:</h4>
+                <ul style="font-size:0.8rem; color:var(--secondary-light); padding-left: 20px; line-height: 1.6;">
+                  <li>Os cálculos aplicam fatores de reserva técnica (10% a 20%) em equipamentos críticos para cobrir indisponibilidade devido a manutenção preventiva, calibração ou falha.</li>
+                  <li>As faixas de preços são indicativas de mercado (valores médios referenciais), livres de impostos estaduais especiais, frete ou infraestrutura predial complexa, exceto quando anotado.</li>
+                  <li>Parâmetros físicos e funcionais tomam como diretriz a RDC Anvisa nº 50/2002.</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div style="margin-top: 24px; display:flex; justify-content: space-between;" class="no-print">
+              <button class="btn btn-secondary" onclick="prevStep(4)">Voltar aos Ajustes</button>
+              <button class="btn btn-primary" onclick="switchTab('projects')">Finalizar e Ir para Projetos</button>
+            </div>
+          </div>
+        </section>
+        
+        <!-- ==================== ADMIN: EQUIPMENT LIST ==================== -->
+        <section id="tab-admin-equipment" class="tab-section">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Cadastro Geral de Equipamentos</h1>
+              <p class="page-subtitle">Gerencie o catálogo de equipamentos médico-hospitalares do PRODIME.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openEquipmentModal()" id="btn-new-equipment">
+              Cadastrar Equipamento
+            </button>
+          </div>
+          
+          <div class="card-premium">
+            <div class="admin-header">
+              <div style="display:flex; gap:10px; flex-grow:1; max-width: 600px;">
+                <input type="text" class="form-control" id="search-eq-query" placeholder="Buscar por código ou nome..." oninput="filterEquipmentList()">
+                <select class="form-control" id="search-eq-cat" onchange="filterEquipmentList()" style="width: 200px;">
+                  <option value="ALL">Todas Categorias</option>
+                  <option value="Monitorização">Monitorização</option>
+                  <option value="Suporte de Vida">Suporte de Vida</option>
+                  <option value="Cirúrgico">Cirúrgico</option>
+                  <option value="Diagnóstico">Diagnóstico</option>
+                  <option value="Esterilização">Esterilização</option>
+                  <option value="Apoio">Apoio</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="table-wrapper">
+              <table class="table-premium" id="admin-eq-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Categoria</th>
+                    <th>Preço Médio</th>
+                    <th>Criticidade</th>
+                    <th>Periodicidade Prev.</th>
+                    <th>Referência Normativa</th>
+                    <th>Status</th>
+                    <th style="width:120px; text-align:center;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-eq-table-body">
+                  <!-- Dynamically loaded -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- ==================== ADMIN: SIZING RULES ==================== -->
+        <section id="tab-admin-rules" class="tab-section">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Regras de Dimensionamento</h1>
+              <p class="page-subtitle">Configure as regras e fórmulas de dimensionamento dos equipamentos por setor.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-secondary" onclick="openModal('modal-manual')" id="btn-show-manual">
+                <svg class="nav-icon" style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                Manual de Preenchimento
+              </button>
+              <button class="btn btn-primary" onclick="openRuleModal()" id="btn-new-rule">
+                Criar Nova Regra
+              </button>
+            </div>
+          </div>
+          
+          <div class="card-premium">
+            <div class="admin-header">
+              <div style="display:flex; gap:10px; flex-grow:1; max-width: 600px;">
+                <select class="form-control" id="search-rule-sector" onchange="filterRulesList()">
+                  <option value="ALL">Todos os Setores</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="table-wrapper">
+              <table class="table-premium" id="admin-rules-table">
+                <thead>
+                  <tr>
+                    <th>Nome da Regra</th>
+                    <th>Setor</th>
+                    <th>Condição de Entrada</th>
+                    <th>Código Eq</th>
+                    <th>Cálculo</th>
+                    <th>Fator Fórmula</th>
+                    <th>Reserva Técnica</th>
+                    <th>Classificação</th>
+                    <th>Status</th>
+                    <th style="width:120px; text-align:center;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-rules-table-body">
+                  <!-- Dynamically loaded -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- ==================== ADMIN: USERS ==================== -->
+        <section id="tab-admin-users" class="tab-section">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Gerenciamento de Usuários</h1>
+              <p class="page-subtitle">Cadastre e gerencie as permissões de acesso dos usuários da instituição.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openNewUserModal()">
+              <svg class="nav-icon" style="width:16px;height:16px;stroke:white;" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+              Novo Usuário
+            </button>
+          </div>
+          
+          <div class="card-premium">
+            <div class="table-wrapper">
+              <table class="table-premium" id="admin-users-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Perfil (Role)</th>
+                    <th>Status</th>
+                    <th style="width: 150px; text-align: right;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-table-body">
+                  <!-- Dynamically loaded -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== ADMIN: AUDIT LOGS ==================== -->
+        <section id="tab-admin-logs" class="tab-section">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Logs de Auditoria e Histórico</h1>
+              <p class="page-subtitle">Rastreamento de ações críticas e modificações realizadas no sistema.</p>
+            </div>
+          </div>
+          
+          <div class="card-premium">
+            <div class="table-wrapper">
+              <table class="table-premium" id="admin-logs-table">
+                <thead>
+                  <tr>
+                    <th>ID Log</th>
+                    <th>Data/Hora</th>
+                    <th>Usuário</th>
+                    <th>Ação</th>
+                    <th>Projeto Referência</th>
+                    <th>Detalhamento da Operação</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-logs-table-body">
+                  <!-- Dynamically loaded -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+      </main>
+    </div>
+    
+    <!-- ==================== MODALS ==================== -->
+    
+    <!-- Modal: Equipment Editor -->
+    <div class="modal-overlay" id="modal-equipment">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <div class="modal-title-icon-wrapper eq-icon">
+              <svg class="modal-title-icon" viewBox="0 0 24 24"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            </div>
+            <h3 class="modal-title" id="eq-modal-title">Cadastrar Novo Equipamento</h3>
+          </div>
+          <button type="button" class="modal-close" onclick="closeModal('modal-equipment')">
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form id="eq-form" onsubmit="saveEquipmentForm(event)">
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Código do Equipamento (Único) *</label>
+              <input type="text" class="form-control" id="eq-code" placeholder="Ex: MON002" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nome do Equipamento *</label>
+              <input type="text" class="form-control" id="eq-name" placeholder="Ex: Monitor de Pressão Arterial" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Categoria *</label>
+              <select class="form-control" id="eq-category" required>
+                <option value="Monitorização">Monitorização</option>
+                <option value="Suporte de Vida">Suporte de Vida</option>
+                <option value="Cirúrgico">Cirúrgico</option>
+                <option value="Diagnóstico">Diagnóstico</option>
+                <option value="Esterilização">Esterilização</option>
+                <option value="Apoio">Apoio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subcategoria</label>
+              <input type="text" class="form-control" id="eq-subcat" placeholder="Ex: Sinais Vitais">
+            </div>
+            <div class="form-group col-span-3">
+              <label class="form-label">Descrição Técnica</label>
+              <textarea class="form-control" id="eq-desc" rows="2" placeholder="Descreva brevemente as especificações técnicas recomendadas..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preço Mínimo Estimado (R$)</label>
+              <input type="number" class="form-control" id="eq-min-price" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preço Médio Estimado (R$) *</label>
+              <input type="number" class="form-control" id="eq-avg-price" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preço Máximo Estimado (R$)</label>
+              <input type="number" class="form-control" id="eq-max-price" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fabricantes de Referência</label>
+              <input type="text" class="form-control" id="eq-manufacturers" placeholder="Separados por vírgula">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vida Útil Estimada (Anos)</label>
+              <input type="number" class="form-control" id="eq-lifespan" value="7">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Manut. Preventiva (Meses)</label>
+              <input type="number" class="form-control" id="eq-maint-int" value="12">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Calibração Exigida?</label>
+              <select class="form-control" id="eq-calib">
+                <option value="true">Sim</option>
+                <option value="false">Não</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Criticidade</label>
+              <select class="form-control" id="eq-criticality">
+                <option value="Alta">Alta (Suporte de vida)</option>
+                <option value="Média">Média (Apoio ao diagnóstico)</option>
+                <option value="Baixa">Baixa (Infraestrutura/Mobiliário)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Complexidade Tecnológica</label>
+              <select class="form-control" id="eq-complexity">
+                <option value="Alta">Alta</option>
+                <option value="Média">Média</option>
+                <option value="Baixa">Baixa</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Infra Elétrica</label>
+              <input type="text" class="form-control" id="eq-infra-elec" value="110V/220V">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Infra Gases Medicinais</label>
+              <input type="text" class="form-control" id="eq-infra-gases" value="Não">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Infra Hidráulica / Esgoto</label>
+              <input type="text" class="form-control" id="eq-infra-water" value="Não">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Referência Normativa</label>
+              <input type="text" class="form-control" id="eq-norm-ref" value="RDC 50 Anvisa">
+            </div>
+            <div class="form-group col-span-3">
+              <label class="form-label">Setores Aplicáveis (Vírgula)</label>
+              <input type="text" class="form-control" id="eq-sectors" placeholder="UTI Adulto, Pronto-Socorro...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-control" id="eq-status">
+                <option value="Ativo">Ativo</option>
+                <option value="Inativo">Inativo</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-equipment')">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Equipamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Modal: Rule Editor -->
+    <div class="modal-overlay" id="modal-rule">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <div class="modal-title-icon-wrapper rule-icon">
+              <svg class="modal-title-icon" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            </div>
+            <h3 class="modal-title" id="rule-modal-title">Criar Nova Regra de Dimensionamento</h3>
+          </div>
+          <button type="button" class="modal-close" onclick="closeModal('modal-rule')">
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form id="rule-form" onsubmit="saveRuleForm(event)">
+          <input type="hidden" id="rule-id">
+          <div class="form-grid-3">
+            <div class="form-group col-span-3">
+              <label class="form-label">Nome Descritivo da Regra *</label>
+              <input type="text" class="form-control" id="rule-name" placeholder="Ex: UTI Adulto - Monitor" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Setor Aplicável *</label>
+              <select class="form-control" id="rule-sector" required>
+                <!-- Filled dynamically from metadata -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Parâmetro de Entrada (Trigger) *</label>
+              <select class="form-control" id="rule-param" required>
+                <option value="leitos">Leitos (leitos)</option>
+                <option value="salas_cirurgicas">Salas Cirúrgicas (salas_cirurgicas)</option>
+                <option value="salas_recuperacao">Salas de Recuperação (salas_recuperacao)</option>
+                <option value="salas_parto">Salas de Parto (salas_parto)</option>
+                <option value="boxes_emergencia">Boxes de Emergência (boxes_emergencia)</option>
+                <option value="salas">Salas Gerais (salas)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Operador Condicional *</label>
+              <select class="form-control" id="rule-operator" required>
+                <option value=">">Maior que (&gt;)</option>
+                <option value=">=">Maior ou igual (&gt;=)</option>
+                <option value="<">Menor que (&lt;)</option>
+                <option value="<=">Menor ou igual (&lt;=)</option>
+                <option value="==">Igual a (==)</option>
+                <option value="ANY">Qualquer valor (Sempre aplica)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Valor Condição *</label>
+              <input type="number" class="form-control" id="rule-val-condition" value="0" required>
+            </div>
+            <div class="form-group col-span-2">
+              <label class="form-label">Equipamento Selecionado *</label>
+              <select class="form-control" id="rule-eq-code" required>
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de Cálculo *</label>
+              <select class="form-control" id="rule-calc-type" required>
+                <option value="per_parameter">Quantidade por Unidade de Parâmetro (ex: 1 por leito)</option>
+                <option value="fixed">Quantidade Fixa (independente de volume)</option>
+                <option value="rounded_ratio">Quantidade por Grupo (ex: 1 a cada 10 leitos)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fator da Fórmula *</label>
+              <input type="number" class="form-control" id="rule-factor" step="any" value="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reserva Técnica (Ex: 0.10 para 10%)</label>
+              <input type="number" class="form-control" id="rule-reserve" step="0.01" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Classificação Regulatória *</label>
+              <select class="form-control" id="rule-classification" required>
+                <option value="Obrigatório">Obrigatório (RDC 50 ou norma técnica)</option>
+                <option value="Recomendado">Recomendado (Boa prática assistencial)</option>
+                <option value="Opcional">Opcional (Upgrade tecnológico)</option>
+              </select>
+            </div>
+            <div class="form-group col-span-3">
+              <label class="form-label">Justificativa Técnica de Dimensionamento *</label>
+              <textarea class="form-control" id="rule-justification" rows="2" placeholder="Ex: Monitorização contínua exigida por leito de tratamento intensivo" required></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Referência Regulatória (Ex: Anvisa RDC 50)</label>
+              <input type="text" class="form-control" id="rule-ref" value="Anvisa RDC 50">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status Regra</label>
+              <select class="form-control" id="rule-active">
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-rule')">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Regra</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Modal: Quantity Adjustment Override -->
+    <div class="modal-overlay" id="modal-adjust">
+      <div class="modal-card" style="max-width: 450px;">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <div class="modal-title-icon-wrapper adjust-icon">
+              <svg class="modal-title-icon" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </div>
+            <h3 class="modal-title">Ajustar Quantidade de Equipamento</h3>
+          </div>
+          <button type="button" class="modal-close" onclick="closeModal('modal-adjust')">
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form id="adjust-form" onsubmit="saveQuantityAdjustment(event)">
+          <input type="hidden" id="adj-sector">
+          <input type="hidden" id="adj-code">
+          
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div>
+              <div style="font-size:0.8rem; color:var(--secondary-light); text-transform:uppercase;">Equipamento</div>
+              <div style="font-weight:600; font-size:1.1rem; color:var(--primary);" id="adj-eq-name-display">-</div>
+              <div style="font-size:0.8rem; color:var(--secondary-light);" id="adj-sector-display">-</div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; background-color:#f8fafc; padding:12px; border-radius: var(--radius-md);">
+              <div>
+                <span style="font-size:0.75rem; color:var(--secondary-light);">Qtd Recomendada</span>
+                <div style="font-size:1.2rem; font-weight:700;" id="adj-val-recommended">0</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.75rem;">Nova Qtd Ajustada *</label>
+                <input type="number" class="form-control" id="adj-val-qty" style="padding:6px 10px;" min="0" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Motivo do Ajuste Clínico / Comercial *</label>
+              <textarea class="form-control" id="adj-val-reason" rows="3" placeholder="Ex: Hospital já possui 2 unidades em estoque ou ajuste de orçamento..." required></textarea>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" onclick="clearAdjustmentOverride()" style="margin-right:auto;">Remover Ajuste</button>
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-adjust')">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Ajuste</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Modal: User Editor -->
+    <div class="modal-overlay" id="modal-user">
+      <div class="modal-card" style="max-width: 500px;">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <div class="modal-title-icon-wrapper eq-icon" style="background-color:#f0fdf4; color:#16a34a; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.12);">
+              <svg class="modal-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm14 10v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+            </div>
+            <h3 class="modal-title" id="user-modal-title">Cadastrar Novo Usuário</h3>
+          </div>
+          <button type="button" class="modal-close" onclick="closeModal('modal-user')">
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form id="user-form" onsubmit="saveUserForm(event)">
+          <input type="hidden" id="user-id">
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div class="form-group">
+              <label class="form-label">Nome Completo *</label>
+              <input type="text" class="form-control" id="user-name" placeholder="Ex: Dr. Lucas Medeiros" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">E-mail Institucional *</label>
+              <input type="email" class="form-control" id="user-email" placeholder="Ex: lucas.medeiros@hsl.org.br" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Perfil de Acesso (Role) *</label>
+              <select class="form-control" id="user-role" required>
+                <option value="Admin">Admin (Acesso total)</option>
+                <option value="Consultor">Consultor (Edição de projetos)</option>
+                <option value="Cliente">Cliente (Visualização + edição básica)</option>
+                <option value="Visualizador">Visualizador (Somente leitura)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status de Acesso</label>
+              <select class="form-control" id="user-active">
+                <option value="true">Ativo (Permitir acesso)</option>
+                <option value="false">Inativo (Bloquear acesso)</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Usuário</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Sizing Rules Manual -->
+    <div class="modal-overlay" id="modal-manual">
+      <div class="modal-card modal-lg" style="max-width: 900px; max-height: 90vh;">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <div class="modal-title-icon-wrapper rule-icon" style="background-color:#eff6ff; color:#2563eb;">
+              <svg class="modal-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            </div>
+            <h3 class="modal-title">Manual de Dimensionamento de Regras</h3>
+          </div>
+          <button type="button" class="modal-close" onclick="closeModal('modal-manual')">
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:24px; font-size:0.9rem; line-height:1.6; color:var(--secondary-light);">
+          <p style="font-size: 0.95rem; color: var(--secondary); margin-bottom: 4px;">
+            Este manual tem como objetivo orientar o preenchimento correto dos campos do modal <strong>Criar Nova Regra de Dimensionamento</strong>, garantindo que o motor de cálculo calcule as recomendações de equipamentos do hospital de forma precisa e em conformidade com as normas regulatórias (como a RDC 50 da Anvisa).
+          </p>
+          
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+          
+          <div>
+            <h4 style="color:var(--primary); font-weight:700; margin-bottom:14px; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+              <svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+              Estrutura do Modal e Significado dos Campos
+            </h4>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+              <div style="background-color:#f8fafc; padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+                <h5 style="color:#0f172a; font-weight:700; margin-bottom:10px; font-size:0.9rem;">1. Identificação Geral &amp; Associação</h5>
+                <ul style="padding-left:16px; margin:0; display:flex; flex-direction:column; gap:8px; list-style-type: disc;">
+                  <li><strong>Nome Descritivo da Regra:</strong> Nome curto e claro. Use o padrão: <code>[Setor] - [Equipamento] - [Especificidade]</code>. Ex: <i>UTI Adulto - Monitor Multiparamétrico</i>.</li>
+                  <li><strong>Setor Aplicável:</strong> O setor assistencial do hospital onde a regra deve ser ativada.</li>
+                  <li><strong>Equipamento Selecionado:</strong> O equipamento do catálogo que será associado e recomendado.</li>
+                </ul>
+              </div>
+              
+              <div style="background-color:#f8fafc; padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+                <h5 style="color:#2563eb; font-weight:700; margin-bottom:10px; font-size:0.9rem;">2. Gatilhos de Ativação</h5>
+                <ul style="padding-left:16px; margin:0; display:flex; flex-direction:column; gap:8px; list-style-type: disc;">
+                  <li><strong>Parâmetro de Entrada (Trigger):</strong> Variável base do setor, como:
+                    <ul style="padding-left:14px; margin-top:4px; list-style-type: circle;">
+                      <li><code>Leitos (leitos)</code>: Quantidade de leitos no setor.</li>
+                      <li><code>Salas Cirúrgicas (salas_cirurgicas)</code>: Salas de cirurgia.</li>
+                      <li><code>Recuperação (salas_recuperacao)</code>: Leitos RPA.</li>
+                      <li><code>Boxes (boxes_emergencia)</code>: Boxes de urgência.</li>
+                      <li><code>Salas Gerais (salas)</code>: Salas e consultórios.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Operador Condicional:</strong> Condição lógica. Use <code>Qualquer valor (Sempre aplica)</code> para a maioria dos casos ou operadores comparativos (<code>&gt;</code>, <code>&gt;=</code>).</li>
+                  <li><strong>Valor Condição:</strong> Limite numérico de ativação. Padrão: <code>0</code>.</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div style="background-color:#f8fafc; padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:16px;">
+              <h5 style="color:#0f766e; font-weight:700; margin-bottom:10px; font-size:0.9rem;">3. Conformidade Regulatória e Justificativas</h5>
+              <ul style="padding-left:16px; margin:0; display:flex; flex-direction:column; gap:8px; list-style-type: disc;">
+                <li><strong>Classificação Regulatória:</strong> 
+                  <code>Obrigatório</code> (exigido por Anvisa RDC 50, RDC 7), 
+                  <code>Recomendado</code> (boa prática assistencial, ex: AMIB, SBC) ou 
+                  <code>Opcional</code> (tecnologia de upgrade adicional).
+                </li>
+                <li><strong>Justificativa Técnica de Dimensionamento:</strong> Explicação clínica ou técnica objetiva da necessidade daquela quantidade (ex: <i>"Monitorização contínua obrigatória de parâmetros fisiológicos por leito crítico."</i>).</li>
+                <li><strong>Referência Regulatória:</strong> O nome da lei, norma ou portaria embasadora (ex: <i>Anvisa RDC 50</i>, <i>RDC 7/2010 Anvisa</i>, etc.).</li>
+              </ul>
+            </div>
+          </div>
+          
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+          
+          <div>
+            <h4 style="color:var(--primary); font-weight:700; margin-bottom:12px; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+              <svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7v-3a1 1 0 011-1h4a1 1 0 011 1v3M4 9h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10a1 1 0 011-1z"/></svg>
+              Lógica de Cálculo e Fórmulas
+            </h4>
+            
+            <div class="table-wrapper" style="margin-bottom:16px; border:1px solid var(--border-color); border-radius:8px; overflow:hidden;">
+              <table style="width:100%; border-collapse:collapse; font-size:0.8rem; text-align:left; background-color:white;">
+                <thead>
+                  <tr style="background-color:#f1f5f9; border-bottom:1px solid var(--border-color);">
+                    <th style="padding:10px; font-weight:700; color:#334155; width:25%;">Tipo de Cálculo</th>
+                    <th style="padding:10px; font-weight:700; color:#334155; width:30%;">Descrição da Lógica</th>
+                    <th style="padding:10px; font-weight:700; color:#334155; width:20%;">Fórmula</th>
+                    <th style="padding:10px; font-weight:700; color:#334155; width:25%;">Exemplo Prático</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:10px; font-weight:700; color:#0f172a;">Por Unidade de Parâmetro<br><code style="font-size:0.75rem; color:#64748b;">per_parameter</code></td>
+                    <td style="padding:10px; color:#475569;">Recomenda quantidade diretamente proporcional ao número de leitos/salas do setor.</td>
+                    <td style="padding:10px; font-family:monospace; color:#0f766e; font-weight:600;">Qtd = Parâmetro &times; Fator</td>
+                    <td style="padding:10px; color:#475569;"><strong>1 monitor por leito</strong>: UTI com 10 leitos recomenda 10 monitores (Fator = 1).</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:10px; font-weight:700; color:#0f172a;">Quantidade Fixa<br><code style="font-size:0.75rem; color:#64748b;">fixed</code></td>
+                    <td style="padding:10px; color:#475569;">Recomenda quantidade estática fixa, indiferente ao tamanho ou volume do setor.</td>
+                    <td style="padding:10px; font-family:monospace; color:#0f766e; font-weight:600;">Qtd = Fator</td>
+                    <td style="padding:10px; color:#475569;"><strong>1 ECG fixo na UTI</strong>: UTI com 10 ou 30 leitos precisa de 1 ECG (Fator = 1).</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px; font-weight:700; color:#0f172a;">Por Grupo / Proporção<br><code style="font-size:0.75rem; color:#64748b;">rounded_ratio</code></td>
+                    <td style="padding:10px; color:#475569;">Divisão arredondada para cima. Útil para equipamentos de uso compartilhado.</td>
+                    <td style="padding:10px; font-family:monospace; color:#0f766e; font-weight:600;">Qtd = teto(Parâmetro / Fator)</td>
+                    <td style="padding:10px; color:#475569;"><strong>1 ventilador para 2 leitos</strong>: UTI com 10 leitos = 5 ventiladores. UTI com 11 leitos = 6 ventiladores (Fator = 2).</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+              <div style="background-color:#f0fdfa; padding:14px; border-radius:8px; border:1px solid rgba(15,118,110,0.15);">
+                <h5 style="color:#0f766e; font-weight:700; margin-bottom:6px; font-size:0.85rem;">Fator da Fórmula</h5>
+                <p style="margin:0; font-size:0.8rem; color:#334155;">
+                  Divisor ou multiplicador do cálculo. Para 1 por leito: Fator = <code>1</code>. Para 2 por leito: Fator = <code>2</code>. Para 1 a cada 5 leitos: Fator = <code>5</code> (usando <i>Por Grupo</i>).
+                </p>
+              </div>
+              <div style="background-color:#f0fdfa; padding:14px; border-radius:8px; border:1px solid rgba(15,118,110,0.15);">
+                <h5 style="color:#0f766e; font-weight:700; margin-bottom:6px; font-size:0.85rem;">Reserva Técnica (Decimal)</h5>
+                <p style="margin:0; font-size:0.8rem; color:#334155;">
+                  Margem de segurança para calibração e manutenção. Deve ser informada como decimal: <code>0</code> para sem reserva, <code>0.10</code> para 10% de margem e <code>0.20</code> para 20%.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+          
+          <div>
+            <h4 style="color:var(--secondary); font-weight:700; margin-bottom:14px; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+              <svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364.364l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              Exemplos Práticos de Preenchimento (Passo a Passo)
+            </h4>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; font-size:0.8rem;">
+              <div style="background-color:#fffbeb; border:1px solid #fef3c7; padding:14px; border-radius:8px; display:flex; flex-direction:column; gap:4px;">
+                <div style="font-weight:700; color:#b45309; margin-bottom:4px; font-size:0.85rem; border-bottom:1px solid #fde68a; padding-bottom:4px;">Exemplo A: Monitor UTI (10% Reserva)</div>
+                <div><strong>Nome:</strong> <span style="color:#78350f;">UTI - Monitor Multiparamétrico</span></div>
+                <div><strong>Setor:</strong> UTI Adulto</div>
+                <div><strong>Parâmetro:</strong> Leitos (leitos)</div>
+                <div><strong>Operador/Valor:</strong> Sempre aplica | 0</div>
+                <div><strong>Equipamento:</strong> MON001 - Monitor</div>
+                <div><strong>Tipo Cálculo:</strong> Por Unidade de Parâmetro</div>
+                <div><strong>Fator / Reserva:</strong> <code>1</code> / <code>0.10</code></div>
+                <div><strong>Classe:</strong> Obrigatório</div>
+                <div style="font-size:0.75rem; color:#92400e; font-style:italic; margin-top:4px; border-top:1px dashed #fde68a; padding-top:4px;">
+                  "Monitorização contínua de parâmetros fisiológicos por leito crítico." (RDC 7/2010)
+                </div>
+              </div>
+              
+              <div style="background-color:#eff6ff; border:1px solid #dbeafe; padding:14px; border-radius:8px; display:flex; flex-direction:column; gap:4px;">
+                <div style="font-weight:700; color:#1d4ed8; margin-bottom:4px; font-size:0.85rem; border-bottom:1px solid #bfdbfe; padding-bottom:4px;">Exemplo B: Eletrocardiógrafo (Fixo)</div>
+                <div><strong>Nome:</strong> <span style="color:#1e40af;">UTI Adulto - ECG Fixo</span></div>
+                <div><strong>Setor:</strong> UTI Adulto</div>
+                <div><strong>Parâmetro:</strong> Leitos (leitos)</div>
+                <div><strong>Operador/Valor:</strong> Sempre aplica | 0</div>
+                <div><strong>Equipamento:</strong> ECG001 - Eletrocardiógrafo</div>
+                <div><strong>Tipo Cálculo:</strong> Quantidade Fixa</div>
+                <div><strong>Fator / Reserva:</strong> <code>1</code> / <code>0</code></div>
+                <div><strong>Classe:</strong> Recomendado</div>
+                <div style="font-size:0.75rem; color:#1e40af; font-style:italic; margin-top:4px; border-top:1px dashed #bfdbfe; padding-top:4px;">
+                  "Necessidade de realização de exames rápidos de 12 derivações no próprio setor." (AMIB)
+                </div>
+              </div>
+              
+              <div style="background-color:#f0fdf4; border:1px solid #dcfce7; padding:14px; border-radius:8px; display:flex; flex-direction:column; gap:4px;">
+                <div style="font-weight:700; color:#15803d; margin-bottom:4px; font-size:0.85rem; border-bottom:1px solid #bbf7d0; padding-bottom:4px;">Exemplo C: Ventilador UTI (50% Leitos)</div>
+                <div><strong>Nome:</strong> <span style="color:#166534;">UTI Adulto - Ventilador Pulmonar</span></div>
+                <div><strong>Setor:</strong> UTI Adulto</div>
+                <div><strong>Parâmetro:</strong> Leitos (leitos)</div>
+                <div><strong>Operador/Valor:</strong> Sempre aplica | 0</div>
+                <div><strong>Equipamento:</strong> VEN001 - Ventilador UTI</div>
+                <div><strong>Tipo Cálculo:</strong> Por Grupo (1 a cada 2 leitos)</div>
+                <div><strong>Fator / Reserva:</strong> <code>2</code> / <code>0.20</code></div>
+                <div><strong>Classe:</strong> Obrigatório</div>
+                <div style="font-size:0.75rem; color:#166534; font-style:italic; margin-top:4px; border-top:1px dashed #bbf7d0; padding-top:4px;">
+                  "Garantia de ventilação mecânica para no mínimo 50% dos leitos ativos." (RDC 7/2010)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="closeModal('modal-manual')">Entendi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TOAST & LOADING ==================== -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="spinner"></div>
+      <span style="font-weight:600; font-size:1.1rem; color:var(--primary);" id="loading-text">Processando requisição...</span>
+    </div>
+    
+    <!-- Import Client-side scripts -->
+    <?!= include('Scripts'); ?>
+  </body>
+</html>
