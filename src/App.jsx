@@ -81,8 +81,12 @@ export default function App() {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Redirecionamento de recuperação de senha disparado pelo e-mail
+        setAuthMode('reset');
+        setAuthModalOpen(true);
+      } else if (session) {
         setUser(session.user);
         fetchUserProfile(session.user);
       } else {
@@ -256,7 +260,7 @@ export default function App() {
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setLoadingText('Autenticando...');
+    setLoadingText('Aguarde...');
     try {
       if (authMode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({
@@ -265,7 +269,9 @@ export default function App() {
         });
         if (error) throw error;
         setAuthModalOpen(false);
-      } else {
+        setAuthEmail('');
+        setAuthPassword('');
+      } else if (authMode === 'signup') {
         const { data, error } = await supabase.auth.signUp({
           email: authEmail,
           password: authPassword,
@@ -276,10 +282,43 @@ export default function App() {
         if (error) throw error;
         showToast('Cadastro realizado! Por favor, faça login com suas credenciais.', 'success');
         setAuthMode('login');
+      } else if (authMode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
+          redirectTo: window.location.origin + '/app'
+        });
+        if (error) throw error;
+        showToast('E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.', 'success');
+        setAuthModalOpen(false);
+        setAuthEmail('');
+      } else if (authMode === 'reset') {
+        const { error } = await supabase.auth.updateUser({ password: authPassword });
+        if (error) throw error;
+        showToast('Senha atualizada com sucesso!', 'success');
+        setAuthModalOpen(false);
+        setAuthPassword('');
+        // Limpar os parâmetros de hash/URL de redefinição
+        window.history.replaceState(null, '', window.location.pathname);
       }
     } catch (err) {
       showToast(err.message, 'danger');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setLoadingText('Conectando ao Google...');
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/app'
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      showToast(err.message, 'danger');
       setLoading(false);
     }
   };
@@ -764,7 +803,10 @@ export default function App() {
           <div className="modal-card" style={{ maxWidth: '420px' }}>
             <div className="modal-header">
               <h3 className="modal-title">
-                {authMode === 'login' ? 'Acessar PRODIME' : 'Criar Conta Grátis'}
+                {authMode === 'login' && 'Acessar PRODIME'}
+                {authMode === 'signup' && 'Criar Conta Grátis'}
+                {authMode === 'forgot' && 'Recuperar Senha'}
+                {authMode === 'reset' && 'Definir Nova Senha'}
               </h3>
               <button className="modal-close" onClick={() => setAuthModalOpen(false)}>&times;</button>
             </div>
@@ -784,29 +826,35 @@ export default function App() {
                   </div>
                 )}
                 
-                <div className="form-group">
-                  <label className="form-label">E-mail Corporativo ou Pessoal *</label>
-                  <input 
-                    type="email" 
-                    className="form-control" 
-                    value={authEmail} 
-                    onChange={e => setAuthEmail(e.target.value)} 
-                    placeholder="nome@empresa.com.br" 
-                    required 
-                  />
-                </div>
+                {(authMode === 'login' || authMode === 'signup' || authMode === 'forgot') && (
+                  <div className="form-group">
+                    <label className="form-label">E-mail Corporativo ou Pessoal *</label>
+                    <input 
+                      type="email" 
+                      className="form-control" 
+                      value={authEmail} 
+                      onChange={e => setAuthEmail(e.target.value)} 
+                      placeholder="nome@empresa.com.br" 
+                      required 
+                    />
+                  </div>
+                )}
 
-                <div className="form-group">
-                  <label className="form-label">Senha de Acesso *</label>
-                  <input 
-                    type="password" 
-                    className="form-control" 
-                    value={authPassword} 
-                    onChange={e => setAuthPassword(e.target.value)} 
-                    placeholder="Mínimo 6 caracteres" 
-                    required 
-                  />
-                </div>
+                {(authMode === 'login' || authMode === 'signup' || authMode === 'reset') && (
+                  <div className="form-group">
+                    <label className="form-label">
+                      {authMode === 'reset' ? 'Nova Senha *' : 'Senha de Acesso *'}
+                    </label>
+                    <input 
+                      type="password" 
+                      className="form-control" 
+                      value={authPassword} 
+                      onChange={e => setAuthPassword(e.target.value)} 
+                      placeholder="Mínimo 6 caracteres" 
+                      required 
+                    />
+                  </div>
+                )}
               </div>
 
               <button 
@@ -814,30 +862,78 @@ export default function App() {
                 className="btn btn-primary" 
                 style={{ width: '100%', marginTop: '24px', padding: '12px' }}
               >
-                {authMode === 'login' ? 'Entrar' : 'Registrar'}
+                {authMode === 'login' && 'Entrar'}
+                {authMode === 'signup' && 'Registrar'}
+                {authMode === 'forgot' && 'Enviar Link de Recuperação'}
+                {authMode === 'reset' && 'Salvar Nova Senha'}
               </button>
 
-              <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
-                {authMode === 'login' ? (
-                  <span>
-                    Não possui uma conta?{' '}
+              {/* Login Social (Google OAuth) - Apenas Login & Signup */}
+              {(authMode === 'login' || authMode === 'signup') && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', color: '#94a3b8', fontSize: '0.85rem' }}>
+                    <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
+                    <span style={{ padding: '0 10px' }}>ou</span>
+                    <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
+                  </div>
+                  
+                  <button 
+                    type="button" 
+                    className="btn-google" 
+                    onClick={handleGoogleLogin}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 18 18">
+                      <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.91c1.7-1.56 2.69-3.86 2.69-6.6z"/>
+                      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.2l-2.91-2.26c-.8.54-1.84.88-3.05.88-2.34 0-4.33-1.58-5.04-3.71H.94v2.33A9 9 0 0 0 9 18z"/>
+                      <path fill="#FBBC05" d="M3.96 10.71a5.41 5.41 0 0 1 0-3.42V4.96H.94a9 9 0 0 0 0 8.08l3.02-2.33z"/>
+                      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35L15 2.4C13.46.97 11.43 0 9 0 5.48 0 2.43 2.03.94 4.96l3.02 2.33c.71-2.13 2.7-3.71 5.04-3.71z"/>
+                    </svg>
+                    {authMode === 'login' ? 'Entrar com o Google' : 'Cadastrar com o Google'}
+                  </button>
+                </>
+              )}
+
+              {/* Links de Alternância */}
+              <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {authMode === 'login' && (
+                  <>
+                    <span>
+                      Não possui uma conta?{' '}
+                      <a 
+                        style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
+                        onClick={() => { setAuthMode('signup'); setAuthEmail(''); setAuthPassword(''); }}
+                      >
+                        Cadastre-se grátis
+                      </a>
+                    </span>
                     <a 
-                      style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                      onClick={() => setAuthMode('signup')}
+                      style={{ color: 'var(--secondary-light)', cursor: 'pointer', fontSize: '0.8rem' }}
+                      onClick={() => { setAuthMode('forgot'); setAuthEmail(''); setAuthPassword(''); }}
                     >
-                      Cadastre-se grátis
+                      Esqueci minha senha
                     </a>
-                  </span>
-                ) : (
+                  </>
+                )}
+                
+                {authMode === 'signup' && (
                   <span>
                     Já tem um cadastro?{' '}
                     <a 
                       style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                      onClick={() => setAuthMode('login')}
+                      onClick={() => { setAuthMode('login'); setAuthEmail(''); setAuthPassword(''); }}
                     >
                       Acesse sua conta
                     </a>
                   </span>
+                )}
+
+                {authMode === 'forgot' && (
+                  <a 
+                    style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
+                    onClick={() => { setAuthMode('login'); setAuthEmail(''); setAuthPassword(''); }}
+                  >
+                    Voltar para o Login
+                  </a>
                 )}
               </div>
             </form>
@@ -850,6 +946,28 @@ export default function App() {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        .btn-google {
+          background-color: white;
+          border: 1px solid #cbd5e1;
+          color: #334155;
+          margin-top: 14px;
+          width: 100%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 10px;
+          font-weight: 600;
+          border-radius: var(--radius-md);
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: var(--font-primary);
+          font-size: 0.9rem;
+        }
+        .btn-google:hover {
+          background-color: #f8fafc;
+          border-color: #94a3b8;
         }
       `}</style>
     </div>
