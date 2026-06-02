@@ -148,7 +148,9 @@ BEGIN
         coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
         -- Se for o primeiro e-mail cadastrado ou um e-mail específico de admin, define como Admin
         CASE 
-            WHEN new.email = 'admin@prodime.com.br' OR new.email = 'maxwell@hsl.org.br' THEN 'Admin'
+            WHEN new.email = 'admin@prodime.com.br' 
+                 OR new.email = 'maxwell.agsilva@hsl.org.br' 
+                 OR new.email = 'maxwellagsilva@gmail.com' THEN 'Admin'
             ELSE 'User'
         END,
         true
