@@ -158,7 +158,8 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger disparada após criação de usuário no Auth do Supabase
-CREATE OR REPLACE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
@@ -178,8 +179,11 @@ ALTER TABLE public.project_equipment_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para Profiles
+DROP POLICY IF EXISTS "Usuários podem ver seus próprios perfis" ON public.profiles;
 CREATE POLICY "Usuários podem ver seus próprios perfis" ON public.profiles
     FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Admins podem ver todos os perfis" ON public.profiles;
 CREATE POLICY "Admins podem ver todos os perfis" ON public.profiles
     FOR ALL USING (
         EXISTS (
@@ -189,8 +193,11 @@ CREATE POLICY "Admins podem ver todos os perfis" ON public.profiles
     );
 
 -- Políticas para Equipamentos (Leitura para todos, Escrita apenas para Admins)
+DROP POLICY IF EXISTS "Qualquer um pode ler equipamentos" ON public.equipment;
 CREATE POLICY "Qualquer um pode ler equipamentos" ON public.equipment
     FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Apenas Admins podem modificar equipamentos" ON public.equipment;
 CREATE POLICY "Apenas Admins podem modificar equipamentos" ON public.equipment
     FOR ALL USING (
         EXISTS (
@@ -200,8 +207,11 @@ CREATE POLICY "Apenas Admins podem modificar equipamentos" ON public.equipment
     );
 
 -- Políticas para Regras de Cálculo (Leitura para todos, Escrita apenas para Admins)
+DROP POLICY IF EXISTS "Qualquer um pode ler regras" ON public.dimensioning_rules;
 CREATE POLICY "Qualquer um pode ler regras" ON public.dimensioning_rules
     FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Apenas Admins podem modificar regras" ON public.dimensioning_rules;
 CREATE POLICY "Apenas Admins podem modificar regras" ON public.dimensioning_rules
     FOR ALL USING (
         EXISTS (
@@ -211,10 +221,12 @@ CREATE POLICY "Apenas Admins podem modificar regras" ON public.dimensioning_rule
     );
 
 -- Políticas para Projetos (Apenas o próprio criador acessa)
+DROP POLICY IF EXISTS "Criador do projeto tem acesso total" ON public.projects;
 CREATE POLICY "Criador do projeto tem acesso total" ON public.projects
     FOR ALL USING (user_id = auth.uid() OR user_id IS NULL);
 
 -- Políticas para Itens do Projeto (Sectores, Parâmetros e Resultados)
+DROP POLICY IF EXISTS "Acesso total aos setores vinculados ao projeto do usuário" ON public.project_sectors;
 CREATE POLICY "Acesso total aos setores vinculados ao projeto do usuário" ON public.project_sectors
     FOR ALL USING (
         EXISTS (
@@ -223,6 +235,7 @@ CREATE POLICY "Acesso total aos setores vinculados ao projeto do usuário" ON pu
         )
     );
 
+DROP POLICY IF EXISTS "Acesso total aos parâmetros vinculados ao projeto do usuário" ON public.sector_parameters;
 CREATE POLICY "Acesso total aos parâmetros vinculados ao projeto do usuário" ON public.sector_parameters
     FOR ALL USING (
         EXISTS (
@@ -231,6 +244,7 @@ CREATE POLICY "Acesso total aos parâmetros vinculados ao projeto do usuário" O
         )
     );
 
+DROP POLICY IF EXISTS "Acesso total aos resultados vinculados ao projeto do usuário" ON public.project_equipment_results;
 CREATE POLICY "Acesso total aos resultados vinculados ao projeto do usuário" ON public.project_equipment_results
     FOR ALL USING (
         EXISTS (
@@ -240,6 +254,7 @@ CREATE POLICY "Acesso total aos resultados vinculados ao projeto do usuário" ON
     );
 
 -- Políticas para Logs de Auditoria
+DROP POLICY IF EXISTS "Leitura de logs apenas para Admins" ON public.audit_logs;
 CREATE POLICY "Leitura de logs apenas para Admins" ON public.audit_logs
     FOR SELECT USING (
         EXISTS (
@@ -247,6 +262,8 @@ CREATE POLICY "Leitura de logs apenas para Admins" ON public.audit_logs
             WHERE profiles.id = auth.uid() AND profiles.role = 'Admin'
         )
     );
+
+DROP POLICY IF EXISTS "Permitir inserção de logs por usuários logados" ON public.audit_logs;
 CREATE POLICY "Permitir inserção de logs por usuários logados" ON public.audit_logs
     FOR INSERT WITH CHECK (true);
 
