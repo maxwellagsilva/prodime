@@ -660,12 +660,6 @@ export default function ProjectWizard({
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '14px', marginTop: '16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                <Shield size={18} style={{ color: 'var(--primary)', minWidth: '18px', marginTop: '2px' }} />
-                <p style={{ fontSize: '0.78rem', color: 'var(--secondary-light)', lineHeight: '1.4', margin: 0 }}>
-                  <strong>Aviso de confidencialidade:</strong> Insira apenas informações necessárias para a estimativa. Não informe dados de pacientes, prontuários ou informações clínicas individualizadas. Os dados do projeto são utilizados para funcionamento da plataforma, geração da estimativa, salvamento do projeto e emissão do relatório, não para venda, publicidade, exposição pública ou monitoramento de instituições.
-                </p>
-              </div>
 
               <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
                 <button type="submit" className="btn btn-primary">
