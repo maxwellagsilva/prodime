@@ -1,4 +1,4 @@
-// Setores padrão e seus respectivos parâmetros quantitativos
+// Setores, ambientes e áreas assistenciais padrão de unidades de saúde
 export const SECTORS_METADATA = [
   { 
     id: "UTI Adulto", 

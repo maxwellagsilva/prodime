@@ -303,8 +303,8 @@ export default function ProjectWizard({
       {/* Page Header */}
       <div className="page-header no-print">
         <div>
-          <h1 className="page-title">{project ? 'Editar Projeto' : 'Novo Projeto de Dimensionamento'}</h1>
-          <p className="page-subtitle">Configure o EAS passo a passo para calcular o parque recomendado.</p>
+          <h1 className="page-title">{project ? 'Editar Estimativa' : 'Novo Planejamento de Estimativa'}</h1>
+          <p className="page-subtitle">Configure as características do seu projeto passo a passo para calcular o parque recomendado.</p>
         </div>
         <button className="btn btn-secondary" onClick={onCancel}>Voltar para Lista</button>
       </div>
@@ -312,8 +312,8 @@ export default function ProjectWizard({
       {/* Wizard Step Navigation Tracker */}
       <div className="wizard-steps no-print">
         {[
-          { stepNum: 1, title: 'Identificação' },
-          { stepNum: 2, title: 'Setores' },
+          { stepNum: 1, title: 'Cadastro' },
+          { stepNum: 2, title: 'Ambientes' },
           { stepNum: 3, title: 'Parâmetros' },
           { stepNum: 4, title: 'Ajustes' },
           { stepNum: 5, title: 'Relatório' }
@@ -334,8 +334,8 @@ export default function ProjectWizard({
       {step === 1 && (
         <div className="card-premium">
           <div className="card-header-flex">
-            <h2 className="card-title">Passo 1: Dados Gerais do Projeto</h2>
-            <span className="badge badge-info">Identificação</span>
+            <h2 className="card-title">Passo 1: Cadastro e Identificação do Projeto</h2>
+            <span className="badge badge-info">Cadastro</span>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
             <div className="form-grid">
@@ -346,18 +346,18 @@ export default function ProjectWizard({
                   className="form-control" 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
-                  placeholder="Ex: Ampliação UTI Hospital Regional" 
+                  placeholder="Ex: Ampliação de Áreas da Unidade Centro" 
                   required 
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Nome do Hospital / EAS *</label>
+                <label className="form-label">Nome da Unidade de Saúde / Estabelecimento *</label>
                 <input 
                   type="text" 
                   className="form-control" 
                   value={hospitalName} 
                   onChange={e => setHospitalName(e.target.value)} 
-                  placeholder="Ex: Hospital Municipal Central" 
+                  placeholder="Ex: Clínica Alpha ou Unidade Básica Centro" 
                   required 
                 />
               </div>
@@ -413,18 +413,18 @@ export default function ProjectWizard({
                 <label className="form-label">Tipo de Projeto</label>
                 <select className="form-control" value={projectType} onChange={e => setProjectType(e.target.value)}>
                   <option value="Novo Projeto">Novo Projeto (Implantação do Zero)</option>
-                  <option value="Ampliação">Ampliação de Setores</option>
+                  <option value="Ampliação">Ampliação de Áreas</option>
                   <option value="Adequação">Adequação / Retrofit</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Responsável Técnico *</label>
+                <label className="form-label">Responsável Técnico / Responsável pelo Preenchimento *</label>
                 <input 
                   type="text" 
                   className="form-control" 
                   value={technicalManager} 
                   onChange={e => setTechnicalManager(e.target.value)} 
-                  placeholder="Ex: Eng. Roberto Santos - CREA XXX" 
+                  placeholder="Ex: Dr. Roberto Santos ou Engª. Ana Silva" 
                   required 
                 />
               </div>
@@ -459,11 +459,11 @@ export default function ProjectWizard({
       {step === 2 && (
         <div className="card-premium">
           <div className="card-header-flex">
-            <h2 className="card-title">Passo 2: Seleção de Setores Hospitalares</h2>
-            <span className="badge badge-info">Estrutura Física</span>
+            <h2 className="card-title">Passo 2: Seleção de Ambientes e Setores</h2>
+            <span className="badge badge-info">Ambientes</span>
           </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', marginBottom: '20px' }}>
-            Marque quais setores farão parte deste projeto de dimensionamento. O motor carregará os parâmetros exigidos para cada setor.
+            Marque quais áreas, ambientes ou setores farão parte desta estimativa de equipamentos. O sistema carregará os parâmetros associados para preenchimento.
           </p>
 
           <div className="sectors-grid">
@@ -497,7 +497,7 @@ export default function ProjectWizard({
               className="btn btn-primary" 
               onClick={() => {
                 if (selectedSectors.length === 0) {
-                  alert('Selecione pelo menos um setor');
+                  alert('Selecione pelo menos um ambiente ou setor');
                   return;
                 }
                 setStep(3);
@@ -513,11 +513,11 @@ export default function ProjectWizard({
       {step === 3 && (
         <div className="card-premium">
           <div className="card-header-flex">
-            <h2 className="card-title">Passo 3: Parâmetros Quantitativos dos Setores</h2>
-            <span className="badge badge-info">Dados Assistenciais</span>
+            <h2 className="card-title">Passo 3: Preenchimento dos Parâmetros</h2>
+            <span className="badge badge-info">Parâmetros</span>
           </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', marginBottom: '20px' }}>
-            Informe as quantidades físicas e operacionais de cada setor ativo. Esses valores serão utilizados pelas fórmulas de dimensionamento da RDC 50 e melhores práticas.
+            Informe os dados quantitativos solicitados para cada área selecionada. Esses parâmetros (capacidades físicas, operacionais ou assistenciais) serão usados pelas regras técnicas de cálculo.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -564,11 +564,11 @@ export default function ProjectWizard({
       {step === 4 && (
         <div className="card-premium">
           <div className="card-header-flex">
-            <h2 className="card-title">Passo 4: Dimensionamento Recomendado & Ajustes Manuais</h2>
+            <h2 className="card-title">Passo 4: Estimativa Gerada & Ajustes Justificados</h2>
             <span className="badge badge-success">Resultados Gerados</span>
           </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', marginBottom: '20px' }}>
-            Veja a lista recomendada de equipamentos calculada pelo motor do PRODIME. Como engenheiro clínico, você pode realizar <strong>ajustes de quantidade</strong> para adequação comercial ou clínica.
+            Revise a estimativa gerada pelo PRODIME. Se necessário, você pode realizar ajustes na quantidade final de determinados equipamentos, registrando uma justificativa técnica. Isso não altera as regras-base do sistema.
           </p>
 
           {/* Table Filters */}
@@ -580,7 +580,7 @@ export default function ProjectWizard({
                 onChange={e => setFilterSector(e.target.value)} 
                 style={{ width: '180px', padding: '6px 12px' }}
               >
-                <option value="ALL">Todos os Setores</option>
+                <option value="ALL">Todos os Ambientes</option>
                 {selectedSectors.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               <select 
@@ -606,17 +606,17 @@ export default function ProjectWizard({
             <table className="table-premium">
               <thead>
                 <tr>
-                  <th>Setor</th>
+                  <th>Ambiente / Área</th>
                   <th>Código</th>
                   <th>Equipamento</th>
                   <th>Categoria</th>
                   <th style={{ textAlign: 'center' }}>Qtd. Calc</th>
-                  <th style={{ textAlign: 'center' }}>Qtd. Recom.</th>
-                  <th style={{ textAlign: 'center' }}>Qtd. Ajust.</th>
+                  <th style={{ textAlign: 'center' }}>Qtd. Sugerida</th>
+                  <th style={{ textAlign: 'center' }}>Qtd. Ajustada</th>
                   <th>Preço Médio</th>
                   <th>Custo Total</th>
                   <th>Classificação</th>
-                  <th>Justificativa (Norma)</th>
+                  <th>Premissa / Justificativa</th>
                   <th style={{ textAlign: 'center', width: '80px' }}>Ações</th>
                 </tr>
               </thead>
@@ -681,7 +681,7 @@ export default function ProjectWizard({
             </table>
           </div>
 
-          <div style={{ marginTop: '24px', display: 'flex', justifycontent: 'space-between', justifyContent: 'space-between' }}>
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
             <button className="btn btn-secondary" onClick={() => setStep(3)}>
               <ArrowLeft size={16} /> Voltar
             </button>
@@ -696,7 +696,7 @@ export default function ProjectWizard({
       {step === 5 && (
         <div className="card-premium">
           <div className="card-header-flex">
-            <h2 className="card-title">Passo 5: Relatório Final & Resumo Técnico/Financeiro</h2>
+            <h2 className="card-title">Passo 5: Emissão do Relatório Técnico-Financeiro</h2>
             <div className="no-print" style={{ display: 'flex', gap: '8px' }}>
               <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
                 <Printer size={14} /> Imprimir PDF
@@ -715,7 +715,7 @@ export default function ProjectWizard({
                 <div>
                   <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 700, color: 'var(--primary)' }}>PRODIME</h1>
                   <h2 style={{ fontFamily: 'var(--font-primary)', fontSize: '1.1rem', color: 'var(--secondary-light)', marginTop: '4px' }}>
-                    Relatório de Dimensionamento de Equipamentos Hospitalares
+                    Relatório de Estimativa e Planejamento de Equipamentos
                   </h2>
                 </div>
                 <div style={{ textAlign: 'right', fontSize: '0.85rem', color: 'var(--secondary-light)' }}>
@@ -732,7 +732,7 @@ export default function ProjectWizard({
                 <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{name}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Hospital / EAS</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Unidade de Saúde</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{hospitalName}</div>
               </div>
               <div>
@@ -740,11 +740,11 @@ export default function ProjectWizard({
                 <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{city} - {state}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Tipo de EAS / Perfil</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Tipo de Unidade / Perfil</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{establishmentType} ({profile})</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Responsável Técnico</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Responsável pelo Preenchimento</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{technicalManager}</div>
               </div>
               <div>
@@ -757,15 +757,15 @@ export default function ProjectWizard({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '30px' }}>
               <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{selectedSectors.length}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Setores Dimensionados</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Ambientes Selecionados</div>
               </div>
               <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{calculateTotalCapacity()}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Capacidade (Leitos/Salas)</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Capacidade Total Informada</div>
               </div>
               <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{calculateTotalEquipmentQty()}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Equipamentos Totais</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Equipamentos Estimados</div>
               </div>
               <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--success-bg)', borderColor: '#bbf7d0' }}>
                 <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--success)' }}>{formatBRL(calculateTotalInvestment())}</div>
@@ -776,7 +776,7 @@ export default function ProjectWizard({
             {/* Split breakdowns */}
             <div className="finance-summary-grid" style={{ marginBottom: '30px' }}>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '12px' }}>Investimento por Setor</h3>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '12px' }}>Investimento por Área/Ambiente</h3>
                 <div className="finance-breakdown-list">
                   {getSectorCostBreakdown().map(b => (
                     <div key={b.sector} className="finance-breakdown-item">
@@ -787,7 +787,7 @@ export default function ProjectWizard({
                 </div>
               </div>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '12px' }}>Composição por Relevância</h3>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '12px' }}>Composição por Classificação</h3>
                 <div className="finance-breakdown-list">
                   {getClassCostBreakdown().map(b => (
                     <div key={b.classification} className="finance-breakdown-item">
@@ -800,15 +800,15 @@ export default function ProjectWizard({
             </div>
 
             {/* Detailed Results List */}
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '12px' }}>Detalhamento do Parque Recomendado</h3>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '12px' }}>Detalhamento da Estimativa de Equipamentos</h3>
             <div className="table-wrapper" style={{ marginBottom: '30px' }}>
               <table className="table-premium">
                 <thead>
                   <tr>
-                    <th>Setor</th>
+                    <th>Ambiente / Área</th>
                     <th>Código</th>
                     <th>Equipamento</th>
-                    <th style={{ textAlign: 'center' }}>Qtd Recom.</th>
+                    <th style={{ textAlign: 'center' }}>Qtd Sugerida</th>
                     <th style={{ textAlign: 'center' }}>Qtd Final</th>
                     <th>Custo Médio Unitário</th>
                     <th>Custo Total</th>
@@ -841,7 +841,7 @@ export default function ProjectWizard({
 
             {/* Regulatory disclaimer */}
             <div className="regulatory-banner">
-              <strong>Observação Regulatória Obrigatória:</strong> Este relatório apresenta uma estimativa técnica de dimensionamento de equipamentos médico-hospitalares com base nos parâmetros informados pelo usuário, nas regras cadastradas no sistema, na base de dados de equipamentos e em referências regulatórias aplicáveis, incluindo a RDC nº 50/2002 da Anvisa quando pertinente. O resultado não substitui a análise de responsável técnico habilitado, nem a aprovação pelos órgãos reguladores competentes.
+              <strong>Aviso de Responsabilidade:</strong> Os resultados gerados pelo sistema são estimativos e referenciais para apoio ao planejamento. Eles não substituem análise técnica de engenharia clínica, validação institucional, parecer técnico, projeto executivo, especificação formal de compra ou a aprovação de órgãos reguladores competentes. A responsabilidade final pelas decisões de investimento cabe à instituição e aos profissionais habilitados.
             </div>
           </div>
 
@@ -861,19 +861,19 @@ export default function ProjectWizard({
         <div className="modal-overlay">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 className="modal-title">Ajustar Quantidade Clínico</h3>
+              <h3 className="modal-title">Ajustar Quantidade da Estimativa</h3>
               <button className="modal-close" onClick={() => setAdjustModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleSaveAdjustment}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--secondary)' }}>Setor:</strong> {adjustTarget.sector_name}
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--secondary)' }}>Ambiente / Área:</strong> {adjustTarget.sector_name}
                 </div>
                 <div>
                   <strong style={{ fontSize: '0.9rem', color: 'var(--secondary)' }}>Equipamento:</strong> {adjustTarget.equipment_name} (<code>{adjustTarget.equipment_code}</code>)
                 </div>
                 <div>
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--secondary)' }}>Quantidade Recomendada (RDC 50):</strong> {adjustTarget.quantity_recommended}
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--secondary)' }}>Quantidade Sugerida pelo Sistema:</strong> {adjustTarget.quantity_recommended}
                 </div>
 
                 <div className="form-group">

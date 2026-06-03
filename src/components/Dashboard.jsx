@@ -95,10 +95,10 @@ export default function Dashboard({
             <TrendingUp size={20} /> Bem-vindo ao PRODIME
           </h2>
           <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--secondary-light)' }}>
-            O PRODIME é um sistema inteligente estruturado para calcular a estimativa e dimensionamento do parque de equipamentos médico-hospitalares de estabelecimentos assistenciais de saúde (EAS).
+            O PRODIME é uma ferramenta de apoio ao planejamento e à estimativa de equipamentos médico-hospitalares para diferentes tipos de unidades de saúde.
           </p>
           <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--secondary-light)' }}>
-            Nosso motor cruza regras parametrizadas baseadas nas referências normativas da <strong>RDC nº 50/2002 da Anvisa</strong> com a infraestrutura assistencial que você definir no cadastro do projeto (número de leitos, salas de exame, salas cirúrgicas, etc.).
+            Nosso motor de cálculo gera estimativas de equipamentos, quantidades sugeridas e valores referenciais a partir dos ambientes e parâmetros cadastrados no projeto. O resultado serve de apoio para estudos preliminares e planejamento orçamentário.
           </p>
           <div style={{ marginTop: '10px', display: 'flex', gap: '12px' }}>
             <button className="btn btn-primary" onClick={() => onNavigate('projects')}>

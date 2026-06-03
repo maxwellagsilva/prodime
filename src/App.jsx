@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   User,
-  Plus
+  Plus,
+  Shield
 } from 'lucide-react';
 
 import supabase from './supabaseClient';
@@ -22,6 +23,8 @@ import Dashboard from './components/Dashboard';
 import ProjectWizard from './components/ProjectWizard';
 import Manual from './components/Manual';
 import AdminPanel from './components/AdminPanel';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfUse from './components/TermsOfUse';
 import { FALLBACK_EQUIPMENT, FALLBACK_RULES } from './utils/constants';
 
 export default function App() {
@@ -602,7 +605,13 @@ export default function App() {
           onStartApp={() => { setView('app'); setTab('dashboard'); }} 
           onLoginClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
           user={user}
+          onViewPrivacy={() => setView('privacy-policy')}
+          onViewTerms={() => setView('terms-of-use')}
         />
+      ) : view === 'privacy-policy' ? (
+        <PrivacyPolicy onBack={() => setView('landing')} />
+      ) : view === 'terms-of-use' ? (
+        <TermsOfUse onBack={() => setView('landing')} />
       ) : (
         /* APP WORKSPACE VIEW */
         <div className="app-container">
@@ -652,6 +661,14 @@ export default function App() {
               >
                 <BookOpen size={20} className="nav-icon" />
                 Manual de Regras
+              </a>
+
+              <a 
+                className={`nav-item ${tab === 'privacy-terms' ? 'active' : ''}`}
+                onClick={() => { setTab('privacy-terms'); setMobileMenuOpen(false); }}
+              >
+                <Shield size={20} className="nav-icon" />
+                Termos e Privacidade
               </a>
               
               {/* Admin features if role matches */}
@@ -785,6 +802,14 @@ export default function App() {
             {/* TAB: MANUAL */}
             {tab === 'manual' && <Manual />}
 
+            {/* TAB: PRIVACY AND TERMS */}
+            {tab === 'privacy-terms' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                <PrivacyPolicy />
+                <TermsOfUse />
+              </div>
+            )}
+
             {/* TAB: ADMIN PANEL */}
             {tab === 'admin' && profile?.role === 'Admin' && (
               <AdminPanel 
@@ -819,17 +844,35 @@ export default function App() {
             <form onSubmit={handleAuth}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {authMode === 'signup' && (
-                  <div className="form-group">
-                    <label className="form-label">Nome Completo *</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={authName} 
-                      onChange={e => setAuthName(e.target.value)} 
-                      placeholder="Ex: Dra. Ana Silva" 
-                      required 
-                    />
-                  </div>
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">Nome Completo *</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={authName} 
+                        onChange={e => setAuthName(e.target.value)} 
+                        placeholder="Ex: Dr. Roberto Santos ou Engª. Ana Silva" 
+                        required 
+                      />
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--secondary-light)', marginTop: '2px', lineHeight: '1.4' }}>
+                      Ao registrar-se, você concorda com os nossos{' '}
+                      <a 
+                        onClick={() => { setAuthModalOpen(false); setView('terms-of-use'); }} 
+                        style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
+                      >
+                        Termos de Uso
+                      </a>{' '}
+                      e{' '}
+                      <a 
+                        onClick={() => { setAuthModalOpen(false); setView('privacy-policy'); }} 
+                        style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
+                      >
+                        Política de Privacidade
+                      </a>.
+                    </div>
+                  </>
                 )}
                 
                 {(authMode === 'login' || authMode === 'signup' || authMode === 'forgot') && (
