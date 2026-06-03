@@ -14,7 +14,8 @@ import {
   Shield,
   Layers,
   HelpCircle,
-  Info
+  Info,
+  TrendingUp
 } from 'lucide-react';
 import { SECTORS_METADATA } from '../utils/constants';
 import { calculateProjectSizing } from '../utils/sizingEngine';
