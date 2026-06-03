@@ -25,8 +25,7 @@ export default function LandingPage({
       {/* Landing Page Header */}
       <header className="lp-header">
         <div className="lp-brand" style={{ cursor: 'pointer' }} onClick={() => onStartApp()}>
-          <div className="lp-logo">P</div>
-          <span className="lp-title">PRODIME</span>
+          <img src="/PRODIME.png" alt="PRODIME" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
         </div>
         <nav className="lp-nav">
           <a href="#o-que-faz" className="lp-nav-link">O que faz</a>

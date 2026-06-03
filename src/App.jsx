@@ -650,9 +650,8 @@ export default function App() {
             <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div className="lp-brand">
-              <div className="lp-logo" style={{ width: '32px', height: '32px', fontSize: '1rem' }}>P</div>
-              <span className="lp-title" style={{ fontSize: '1.1rem' }}>PRODIME</span>
+            <div className="lp-brand" onClick={() => setView('landing')} style={{ cursor: 'pointer' }}>
+              <img src="/PRODIME.png" alt="PRODIME" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
             </div>
             <div style={{ width: '24px' }}></div>
           </header>
@@ -664,9 +663,8 @@ export default function App() {
 
           {/* Sidebar Navigation */}
           <aside className={`sidebar no-print ${mobileMenuOpen ? 'active' : ''}`}>
-            <div className="brand" onClick={() => setView('landing')} style={{ cursor: 'pointer' }}>
-              <div className="brand-icon">P</div>
-              <span className="brand-name">PRODIME</span>
+            <div className="brand" onClick={() => setView('landing')} style={{ cursor: 'pointer', padding: '0 8px 24px 8px', display: 'flex', alignItems: 'center' }}>
+              <img src="/PRODIME.png" alt="PRODIME" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
             </div>
             
             <nav className="nav-menu">
