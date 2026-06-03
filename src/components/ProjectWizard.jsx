@@ -9,7 +9,12 @@ import {
   Edit,
   AlertTriangle,
   Sliders,
-  DollarSign
+  DollarSign,
+  BookOpen,
+  Shield,
+  Layers,
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import { SECTORS_METADATA } from '../utils/constants';
 import { calculateProjectSizing } from '../utils/sizingEngine';
@@ -22,9 +27,10 @@ export default function ProjectWizard({
   onSave, 
   onCancel 
 }) {
-  const [step, setStep] = useState(1);
+  // If editing an existing project, start at step 1. If creating a new one, start at step 0 (welcome screen)
+  const [step, setStep] = useState(project ? 1 : 0);
   
-  // Step 1 States (Identification)
+  // Step 1 States (Identification / Cadastro)
   const [name, setName] = useState('');
   const [hospitalName, setHospitalName] = useState('');
   const [city, setCity] = useState('');
@@ -37,7 +43,7 @@ export default function ProjectWizard({
   const [notes, setNotes] = useState('');
   const [priceDate, setPriceDate] = useState(new Date().toLocaleDateString('pt-BR'));
 
-  // Step 2 States (Selected Sectors)
+  // Step 2 States (Selected Sectors / Ambientes)
   const [selectedSectors, setSelectedSectors] = useState([]);
 
   // Step 3 States (Parameters)
@@ -84,6 +90,7 @@ export default function ProjectWizard({
       if (project.results) {
         setResults(project.results);
       }
+      setStep(1);
     } else {
       // Clear for new project
       setName('');
@@ -99,9 +106,40 @@ export default function ProjectWizard({
       setSelectedSectors([]);
       setParameters({});
       setResults([]);
-      setStep(1);
+      setStep(0);
     }
   }, [project]);
+
+  // Run simulation flow
+  const runSimulation = () => {
+    setName("Simulação de Exemplo - UTI Adulto e CME");
+    setHospitalName("Clínica de Saúde Modelo");
+    setCity("São Paulo");
+    setState("SP");
+    setEstablishmentType("Hospital Geral");
+    setProfile("Privado");
+    setProjectType("Novo Projeto");
+    setTechnicalManager("Simulador de Planejamento");
+    setCurrency("BRL");
+    setNotes("Esta é uma simulação de exemplo para conhecer o funcionamento da ferramenta.");
+    setSelectedSectors(["UTI Adulto", "CME"]);
+    
+    const simParams = {
+      "UTI Adulto": { leitos: 10 },
+      "CME": { salas: 1 }
+    };
+    setParameters(simParams);
+
+    const calculatedResults = calculateProjectSizing(
+      ["UTI Adulto", "CME"],
+      simParams,
+      rules,
+      equipment,
+      [] // No previous adjustments
+    );
+    setResults(calculatedResults);
+    setStep(4);
+  };
 
   // Handle sector selection toggle
   const handleToggleSector = (sectorId) => {
@@ -141,7 +179,6 @@ export default function ProjectWizard({
 
   // Run calculation logic and switch to step 4
   const runCalculation = () => {
-    // Run client side engine
     const calculatedResults = calculateProjectSizing(
       selectedSectors,
       parameters,
@@ -298,308 +335,525 @@ export default function ProjectWizard({
     document.body.removeChild(link);
   };
 
+  // Dynamic Sector groups for Step 2
+  const categories = [
+    { 
+      title: "Áreas Assistenciais", 
+      sectors: SECTORS_METADATA.filter(s => ["UTI Adulto", "UTI Neonatal", "UTI Pediátrica"].includes(s.id)) 
+    },
+    { 
+      title: "Áreas de Atendimento e Observação", 
+      sectors: SECTORS_METADATA.filter(s => ["Centro Cirúrgico", "Centro Obstétrico", "Pronto-Socorro", "Internação"].includes(s.id)) 
+    },
+    { 
+      title: "Áreas de Apoio Diagnóstico", 
+      sectors: SECTORS_METADATA.filter(s => ["Diagnóstico por Imagem"].includes(s.id)) 
+    },
+    { 
+      title: "Áreas de Apoio Técnico", 
+      sectors: SECTORS_METADATA.filter(s => ["CME"].includes(s.id)) 
+    }
+  ];
+
+  // Render Sidebar Component for Steps 1, 2, 3
+  const renderSidebarSummary = () => {
+    return (
+      <div className="card-premium no-print" style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem', minWidth: '280px' }}>
+        <h3 style={{ fontFamily: 'Outfit', fontWeight: 600, color: 'var(--secondary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Sliders size={16} /> Resumo do Planejamento
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div>
+            <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 600 }}>Identificação do Projeto</span>
+            <strong style={{ display: 'block', color: 'var(--primary)', marginTop: '2px' }}>{name || <span style={{ color: '#cbd5e1', fontStyle: 'italic', fontWeight: 'normal' }}>Não nomeado</span>}</strong>
+            {hospitalName && <span style={{ display: 'block', color: 'var(--secondary-light)', fontSize: '0.78rem', marginTop: '2px' }}>{hospitalName} {city && `(${city}-${state})`}</span>}
+          </div>
+          
+          <div>
+            <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 600 }}>Áreas Selecionadas ({selectedSectors.length})</span>
+            {selectedSectors.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                {selectedSectors.map(s => (
+                  <span key={s} className="badge badge-info" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>{s}</span>
+                ))}
+              </div>
+            ) : (
+              <span style={{ color: '#cbd5e1', fontStyle: 'italic', display: 'block', marginTop: '4px' }}>Nenhuma área selecionada</span>
+            )}
+          </div>
+
+          <div>
+            <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 600 }}>Parâmetros Informados</span>
+            {Object.keys(parameters).length > 0 && selectedSectors.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+                {selectedSectors.map(sectId => {
+                  const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
+                  if (!sectMeta) return null;
+                  return sectMeta.params.map(p => {
+                    const val = parameters[sectId]?.[p.name] || 0;
+                    return (
+                      <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dotted #e2e8f0', paddingBottom: '2px', fontSize: '0.78rem' }}>
+                        <span>{sectId} ({p.label.replace("Número de ", "").replace("Leitos de ", "").replace("Salas de ", "")}):</span>
+                        <strong>{val}</strong>
+                      </div>
+                    );
+                  });
+                })}
+              </div>
+            ) : (
+              <span style={{ color: '#cbd5e1', fontStyle: 'italic', display: 'block', marginTop: '4px' }}>Aguardando preenchimento</span>
+            )}
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', marginTop: '8px', textAlign: 'center' }}>
+            {name && selectedSectors.length > 0 ? (
+              <span style={{ color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem' }}>
+                ✔️ Pronto para gerar estimativa
+              </span>
+            ) : (
+              <span style={{ color: '#d97706', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem' }}>
+                ⚠️ Aguardando preenchimento
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="tab-section active">
-      {/* Page Header */}
-      <div className="page-header no-print">
-        <div>
-          <h1 className="page-title">{project ? 'Editar Estimativa' : 'Novo Planejamento de Estimativa'}</h1>
-          <p className="page-subtitle">Configure as características do seu projeto passo a passo para calcular o parque recomendado.</p>
-        </div>
-        <button className="btn btn-secondary" onClick={onCancel}>Voltar para Lista</button>
-      </div>
-
-      {/* Wizard Step Navigation Tracker */}
-      <div className="wizard-steps no-print">
-        {[
-          { stepNum: 1, title: 'Cadastro' },
-          { stepNum: 2, title: 'Ambientes' },
-          { stepNum: 3, title: 'Parâmetros' },
-          { stepNum: 4, title: 'Ajustes' },
-          { stepNum: 5, title: 'Relatório' }
-        ].map((s) => (
-          <div 
-            key={s.stepNum} 
-            className={`step-indicator ${step === s.stepNum ? 'active' : ''} ${step > s.stepNum ? 'completed' : ''}`}
-          >
-            <div className="step-number">
-              {step > s.stepNum ? <Check size={16} /> : s.stepNum}
+      {/* STEP 0: WELCOME & ONBOARDING (For New Estimations) */}
+      {step === 0 && (
+        <div className="card-premium" style={{ maxWidth: '800px', margin: '20px auto', padding: '40px 30px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingUp size={28} />
             </div>
-            <span>{s.title}</span>
+            <h1 style={{ fontFamily: 'Outfit', fontSize: '1.8rem', fontWeight: 700, color: 'var(--secondary)' }}>
+              Vamos criar sua primeira estimativa de equipamentos
+            </h1>
+            <p style={{ color: 'var(--secondary-light)', fontSize: '0.98rem', lineHeight: '1.6', maxWidth: '640px', marginTop: '4px' }}>
+              Em poucos passos, o PRODIME ajuda você a estruturar uma estimativa de equipamentos médico-hospitalares e investimento referencial com base nas características da unidade de saúde informada.
+            </p>
+            <p style={{ color: '#64748b', fontSize: '0.88rem', lineHeight: '1.5', maxWidth: '600px' }}>
+              Você vai cadastrar o projeto, selecionar os setores ou ambientes disponíveis no sistema, preencher os parâmetros solicitados e receber um relatório com quantitativos estimados, valores referenciais e premissas utilizadas no cálculo.
+            </p>
           </div>
-        ))}
-      </div>
 
-      {/* STEP 1: IDENTIFICATION */}
-      {step === 1 && (
-        <div className="card-premium">
-          <div className="card-header-flex">
-            <h2 className="card-title">Passo 1: Cadastro e Identificação do Projeto</h2>
-            <span className="badge badge-info">Cadastro</span>
+          <hr style={{ borderColor: 'var(--border-color)' }} />
+
+          <div>
+            <h3 style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: 'var(--secondary)', marginBottom: '12px', fontWeight: 600 }}>
+              O que você terá ao final:
+            </h3>
+            <ul style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', fontSize: '0.88rem', color: 'var(--secondary-light)', paddingLeft: '16px' }}>
+              <li>📋 Lista estimada de equipamentos por área selecionada</li>
+              <li>📊 Quantidades sugeridas com base nas regras técnicas do sistema</li>
+              <li>🏷️ Valores referenciais por item e por área</li>
+              <li>💰 Investimento total estimado</li>
+              <li>📄 Relatório técnico-financeiro para análise e apresentação</li>
+            </ul>
           </div>
-          <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
-            <div className="form-grid">
-              <div className="form-group col-span-2">
-                <label className="form-label">Nome do Projeto *</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={name} 
-                  onChange={e => setName(e.target.value)} 
-                  placeholder="Ex: Ampliação de Áreas da Unidade Centro" 
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Nome da Unidade de Saúde / Estabelecimento *</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={hospitalName} 
-                  onChange={e => setHospitalName(e.target.value)} 
-                  placeholder="Ex: Clínica Alpha ou Unidade Básica Centro" 
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Tipo de Estabelecimento *</label>
-                <select 
-                  className="form-control" 
-                  value={establishmentType} 
-                  onChange={e => setEstablishmentType(e.target.value)} 
-                  required
-                >
-                  <option value="Hospital Geral">Hospital Geral</option>
-                  <option value="Hospital Especializado">Hospital Especializado</option>
-                  <option value="Hospital-Dia">Hospital-Dia</option>
-                  <option value="Clínica Ambulatorial">Clínica Ambulatorial</option>
-                  <option value="Centro de Diagnóstico">Centro de Diagnóstico por Imagem</option>
-                  <option value="Unidade Básica de Saúde">Unidade Básica de Saúde</option>
-                  <option value="Pronto Atendimento">Pronto Atendimento</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Cidade *</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={city} 
-                  onChange={e => setCity(e.target.value)} 
-                  placeholder="Ex: São Paulo" 
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Estado (UF) *</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={state} 
-                  onChange={e => setState(e.target.value.toUpperCase())} 
-                  placeholder="Ex: SP" 
-                  maxLength={2} 
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Perfil Administrativo</label>
-                <select className="form-control" value={profile} onChange={e => setProfile(e.target.value)}>
-                  <option value="Público">Público (SUS)</option>
-                  <option value="Privado">Privado</option>
-                  <option value="Filantrópico">Filantrópico</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Tipo de Projeto</label>
-                <select className="form-control" value={projectType} onChange={e => setProjectType(e.target.value)}>
-                  <option value="Novo Projeto">Novo Projeto (Implantação do Zero)</option>
-                  <option value="Ampliação">Ampliação de Áreas</option>
-                  <option value="Adequação">Adequação / Retrofit</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Responsável Técnico / Responsável pelo Preenchimento *</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={technicalManager} 
-                  onChange={e => setTechnicalManager(e.target.value)} 
-                  placeholder="Ex: Dr. Roberto Santos ou Engª. Ana Silva" 
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Moeda de Referência</label>
-                <select className="form-control" value={currency} onChange={e => setCurrency(e.target.value)}>
-                  <option value="BRL">Real (R$ - BRL)</option>
-                  <option value="USD">Dólar (US$ - USD)</option>
-                </select>
-              </div>
-              <div className="form-group col-span-2">
-                <label className="form-label">Observações Gerais</label>
-                <textarea 
-                  className="form-control" 
-                  value={notes} 
-                  onChange={e => setNotes(e.target.value)} 
-                  rows={3} 
-                  placeholder="Informações adicionais..."
-                />
-              </div>
-            </div>
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
-              <button type="submit" className="btn btn-primary">
-                Avançar: Setores <ArrowRight size={16} />
-              </button>
-            </div>
-          </form>
+
+          <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', padding: '16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <Info size={20} style={{ color: '#d97706', minWidth: '20px', marginTop: '2px' }} />
+            <p style={{ fontSize: '0.82rem', color: '#b45309', lineHeight: '1.4', margin: 0 }}>
+              <strong>Aviso curto:</strong> O resultado é uma estimativa de apoio ao planejamento e deve ser validado pelo gestor responsável e por profissionais habilitados antes de qualquer decisão de compra ou implantação.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', marginTop: '10px' }}>
+            <button className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '0.95rem' }} onClick={() => setStep(1)}>
+              Começar estimativa real
+            </button>
+            <button className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: '0.95rem' }} onClick={runSimulation}>
+              Explorar com exemplo
+            </button>
+          </div>
         </div>
       )}
 
-      {/* STEP 2: SECTORS SELECTION */}
-      {step === 2 && (
-        <div className="card-premium">
-          <div className="card-header-flex">
-            <h2 className="card-title">Passo 2: Seleção de Ambientes e Setores</h2>
-            <span className="badge badge-info">Ambientes</span>
+      {/* HUMAN PROGRESS & STEPPER HEADER (Shown for steps > 0) */}
+      {step > 0 && (
+        <>
+          <div className="page-header no-print">
+            <div>
+              <h1 className="page-title">{project ? 'Editar Estimativa' : 'Novo Planejamento de Estimativa'}</h1>
+              <p className="page-subtitle">Configure as características do seu projeto passo a passo para calcular o parque recomendado.</p>
+            </div>
+            <button className="btn btn-secondary" onClick={onCancel}>Voltar para Lista</button>
           </div>
-          <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', marginBottom: '20px' }}>
-            Marque quais áreas, ambientes ou setores farão parte desta estimativa de equipamentos. O sistema carregará os parâmetros associados para preenchimento.
-          </p>
 
-          <div className="sectors-grid">
-            {SECTORS_METADATA.map((sect) => {
-              const isChecked = selectedSectors.includes(sect.id);
-              return (
-                <div 
-                  key={sect.id} 
-                  className={`sector-checkbox-card ${isChecked ? 'selected' : ''}`}
-                  onClick={() => handleToggleSector(sect.id)}
-                >
-                  <input 
-                    type="checkbox" 
-                    checked={isChecked}
-                    onChange={() => {}} // Handled by card click
-                  />
-                  <div className="sector-card-info">
-                    <span className="sector-card-title">{sect.name}</span>
-                    <span className="sector-card-desc">{sect.desc}</span>
-                  </div>
+          {/* Human language progress notification */}
+          <div style={{ textAlign: 'center', marginBottom: '14px', fontSize: '0.88rem', color: 'var(--secondary-light)', fontWeight: 500 }} className="no-print">
+            {step === 1 && "💡 Passo 1: Comece cadastrando as informações gerais do projeto. Você está a 4 passos do relatório final."}
+            {step === 2 && "💡 Passo 2: Selecione quais áreas fazem parte do projeto. Você está a 3 passos do relatório."}
+            {step === 3 && "💡 Passo 3: Informe os parâmetros de capacidade física ou operacional. Você está a 2 passos do relatório."}
+            {step === 4 && "💡 Passo 4: Revise a estimativa e faça ajustes justificados. Você está a 1 passo do relatório final!"}
+            {step === 5 && "🎉 Passo 5: Relatório técnico-financeiro gerado com sucesso!"}
+          </div>
+
+          {/* Stepper Steps */}
+          <div className="wizard-steps no-print">
+            {[
+              { stepNum: 1, title: 'Cadastro' },
+              { stepNum: 2, title: 'Ambientes' },
+              { stepNum: 3, title: 'Parâmetros' },
+              { stepNum: 4, title: 'Ajustes' },
+              { stepNum: 5, title: 'Relatório' }
+            ].map((s) => (
+              <div 
+                key={s.stepNum} 
+                className={`step-indicator ${step === s.stepNum ? 'active' : ''} ${step > s.stepNum ? 'completed' : ''}`}
+              >
+                <div className="step-number">
+                  {step > s.stepNum ? <Check size={16} /> : s.stepNum}
                 </div>
-              );
-            })}
+                <span>{s.title}</span>
+              </div>
+            ))}
           </div>
+        </>
+      )}
 
-          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
-            <button className="btn btn-secondary" onClick={() => setStep(1)}>
-              <ArrowLeft size={16} /> Voltar
-            </button>
-            <button 
-              className="btn btn-primary" 
-              onClick={() => {
-                if (selectedSectors.length === 0) {
-                  alert('Selecione pelo menos um ambiente ou setor');
-                  return;
-                }
-                setStep(3);
-              }}
-            >
-              Avançar: Parâmetros <ArrowRight size={16} />
-            </button>
+      {/* STEP 1: IDENTIFICATION / CADASTRO */}
+      {step === 1 && (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px', alignItems: 'start' }} className="wizard-layout-grid">
+          <div className="card-premium">
+            <div className="card-header-flex">
+              <h2 className="card-title">Passo 1: Identificação do Projeto</h2>
+              <span className="badge badge-info">Cadastro</span>
+            </div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+              <strong>Identifique a estimativa:</strong> Informe os dados básicos do projeto para organizar o relatório final. Essas informações ajudam a contextualizar a análise, mas não alteram as regras-base de dimensionamento do PRODIME.
+            </p>
+            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
+              <div className="form-grid">
+                <div className="form-group col-span-2">
+                  <label className="form-label">Nome do Projeto *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={name} 
+                    onChange={e => setName(e.target.value)} 
+                    placeholder="Ex: Implantação de nova unidade, ampliação de serviço existente, adequação de estrutura..." 
+                    required 
+                  />
+                </div>
+                <div className="form-group col-span-2">
+                  <label className="form-label">Nome da Unidade de Saúde / Estabelecimento *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={hospitalName} 
+                    onChange={e => setHospitalName(e.target.value)} 
+                    placeholder="Informe o nome da unidade, instituição ou identificação interna do projeto." 
+                    required 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Tipo de Estabelecimento *</label>
+                  <select 
+                    className="form-control" 
+                    value={establishmentType} 
+                    onChange={e => setEstablishmentType(e.target.value)} 
+                    required
+                  >
+                    <option value="Hospital Geral">Hospital Geral</option>
+                    <option value="Hospital Especializado">Hospital Especializado</option>
+                    <option value="Hospital-Dia">Hospital-Dia</option>
+                    <option value="Clínica Ambulatorial">Clínica Ambulatorial</option>
+                    <option value="Centro de Diagnóstico">Centro de Diagnóstico por Imagem</option>
+                    <option value="Unidade Básica de Saúde">Unidade Básica de Saúde</option>
+                    <option value="Pronto Atendimento">Pronto Atendimento</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Perfil Administrativo</label>
+                  <select className="form-control" value={profile} onChange={e => setProfile(e.target.value)}>
+                    <option value="Público">Público (SUS)</option>
+                    <option value="Privado">Privado</option>
+                    <option value="Filantrópico">Filantrópico</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Cidade *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={city} 
+                    onChange={e => setCity(e.target.value)} 
+                    placeholder="Ex: São Paulo" 
+                    required 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Estado (UF) *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={state} 
+                    onChange={e => setState(e.target.value.toUpperCase())} 
+                    placeholder="Ex: SP" 
+                    maxLength={2} 
+                    required 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Tipo de Projeto</label>
+                  <select className="form-control" value={projectType} onChange={e => setProjectType(e.target.value)}>
+                    <option value="Novo Projeto">Novo Projeto (Implantação do Zero)</option>
+                    <option value="Ampliação">Ampliação</option>
+                    <option value="Adequação">Adequação / Retrofit</option>
+                    <option value="Reestruturação">Reestruturação / Estudo Preliminar</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Responsável pelo Preenchimento *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={technicalManager} 
+                    onChange={e => setTechnicalManager(e.target.value)} 
+                    placeholder="Ex: Dr. Roberto Santos ou Engª. Ana Silva" 
+                    required 
+                  />
+                </div>
+                <div className="form-group col-span-2">
+                  <label className="form-label">Observações Gerais</label>
+                  <textarea 
+                    className="form-control" 
+                    value={notes} 
+                    onChange={e => setNotes(e.target.value)} 
+                    rows={3} 
+                    placeholder="Use este campo para registrar premissas, restrições, informações relevantes ou contexto do projeto."
+                  />
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#f8fafc', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '14px', marginTop: '16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <Shield size={18} style={{ color: 'var(--primary)', minWidth: '18px', marginTop: '2px' }} />
+                <p style={{ fontSize: '0.78rem', color: 'var(--secondary-light)', lineHeight: '1.4', margin: 0 }}>
+                  <strong>Aviso de confidencialidade:</strong> Insira apenas informações necessárias para a estimativa. Não informe dados de pacientes, prontuários ou informações clínicas individualizadas. Os dados do projeto são utilizados para funcionamento da plataforma, geração da estimativa, salvamento do projeto e emissão do relatório, não para venda, publicidade, exposição pública ou monitoramento de instituições.
+                </p>
+              </div>
+
+              <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                <button type="submit" className="btn btn-primary">
+                  Avançar para seleção de áreas <ArrowRight size={16} />
+                </button>
+              </div>
+            </form>
           </div>
+          {renderSidebarSummary()}
+        </div>
+      )}
+
+      {/* STEP 2: SECTORS / AMBIENTES SELECTION (Categorized) */}
+      {step === 2 && (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px', alignItems: 'start' }} className="wizard-layout-grid">
+          <div className="card-premium">
+            <div className="card-header-flex">
+              <h2 className="card-title">Passo 2: Selecione as áreas que fazem parte da estimativa</h2>
+              <span className="badge badge-info">Ambientes</span>
+            </div>
+            <p style={{ fontSize: '0.88rem', color: 'var(--secondary-light)', marginBottom: '8px' }}>
+              Escolha os setores, ambientes ou estruturas disponíveis no sistema que serão considerados no cálculo. As opções podem variar conforme a evolução da plataforma e as regras técnicas cadastradas.
+            </p>
+            <p style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+              💡 Você não precisa selecionar tudo. Marque apenas o que faz parte do projeto que deseja estimar neste momento.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {categories.map((cat, catIdx) => {
+                if (cat.sectors.length === 0) return null;
+                return (
+                  <div key={catIdx}>
+                    <h3 style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: 'var(--primary)', marginBottom: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Layers size={16} /> {cat.title}
+                    </h3>
+                    <div className="sectors-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {cat.sectors.map((sect) => {
+                        const isChecked = selectedSectors.includes(sect.id);
+                        return (
+                          <div 
+                            key={sect.id} 
+                            className={`sector-checkbox-card ${isChecked ? 'selected' : ''}`}
+                            onClick={() => handleToggleSector(sect.id)}
+                            style={{ display: 'flex', gap: '10px', padding: '12px', border: isChecked ? '2px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', backgroundColor: isChecked ? 'var(--primary-bg)' : 'white', transition: 'all 0.2s' }}
+                          >
+                            <input 
+                              type="checkbox" 
+                              checked={isChecked}
+                              onChange={() => {}} // Handled by card click
+                              style={{ marginTop: '3px' }}
+                            />
+                            <div className="sector-card-info" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span className="sector-card-title" style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--secondary)' }}>{sect.name}</span>
+                              <span className="sector-card-desc" style={{ fontSize: '0.75rem', color: 'var(--secondary-light)' }}>{sect.desc}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+              <button className="btn btn-secondary" onClick={() => setStep(1)}>
+                <ArrowLeft size={16} /> Voltar
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => {
+                  if (selectedSectors.length === 0) {
+                    alert('Selecione pelo menos um ambiente ou setor');
+                    return;
+                  }
+                  setStep(3);
+                }}
+              >
+                Avançar para preenchimento de parâmetros <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+          {renderSidebarSummary()}
         </div>
       )}
 
       {/* STEP 3: SECTOR PARAMETERS */}
       {step === 3 && (
-        <div className="card-premium">
-          <div className="card-header-flex">
-            <h2 className="card-title">Passo 3: Preenchimento dos Parâmetros</h2>
-            <span className="badge badge-info">Parâmetros</span>
-          </div>
-          <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', marginBottom: '20px' }}>
-            Informe os dados quantitativos solicitados para cada área selecionada. Esses parâmetros (capacidades físicas, operacionais ou assistenciais) serão usados pelas regras técnicas de cálculo.
-          </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px', alignItems: 'start' }} className="wizard-layout-grid">
+          <div className="card-premium">
+            <div className="card-header-flex">
+              <h2 className="card-title">Passo 3: Preenchimento dos Parâmetros</h2>
+              <span className="badge badge-info">Parâmetros</span>
+            </div>
+            <p style={{ fontSize: '0.88rem', color: 'var(--secondary-light)', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+              Informe os dados quantitativos solicitados para cada área selecionada. Esses parâmetros representam a capacidade física, assistencial ou operacional da unidade e serão aplicados nas regras técnicas para gerar a estimativa.
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {selectedSectors.map(sectId => {
-              const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
-              return (
-                <div key={sectId} className="parameter-section-card">
-                  <div className="parameter-section-title">{sectMeta.name}</div>
-                  <div className="parameter-inputs-grid">
-                    {sectMeta.params.map(p => {
-                      const paramValue = parameters[sectId]?.[p.name] !== undefined ? parameters[sectId][p.name] : 0;
-                      return (
-                        <div key={p.name} className="form-group">
-                          <label className="form-label">{p.label} *</label>
-                          <input 
-                            type="number" 
-                            className="form-control" 
-                            value={paramValue} 
-                            min="0"
-                            onChange={e => handleParamChange(sectId, p.name, e.target.value)}
-                            required 
-                          />
-                        </div>
-                      );
-                    })}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {selectedSectors.map(sectId => {
+                const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
+                return (
+                  <div key={sectId} className="parameter-section-card" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
+                    <div className="parameter-section-title" style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: '12px', fontFamily: 'Outfit', fontSize: '0.95rem' }}>{sectMeta.name}</div>
+                    <div className="parameter-inputs-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      {sectMeta.params.map(p => {
+                        const paramValue = parameters[sectId]?.[p.name] !== undefined ? parameters[sectId][p.name] : 0;
+                        return (
+                          <div key={p.name} className="form-group" style={{ margin: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600 }}>{p.label} *</label>
+                            <input 
+                              type="number" 
+                              className="form-control" 
+                              value={paramValue} 
+                              min="0"
+                              onChange={e => handleParamChange(sectId, p.name, e.target.value)}
+                              required 
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
 
-          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
-            <button className="btn btn-secondary" onClick={() => setStep(2)}>
-              <ArrowLeft size={16} /> Voltar
-            </button>
-            <button className="btn btn-primary" onClick={runCalculation}>
-              Calcular Dimensionamento <ArrowRight size={16} />
-            </button>
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+              <button className="btn btn-secondary" onClick={() => setStep(2)}>
+                <ArrowLeft size={16} /> Voltar
+              </button>
+              <button className="btn btn-primary" onClick={runCalculation}>
+                Gerar estimativa <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
+          {renderSidebarSummary()}
         </div>
       )}
 
-      {/* STEP 4: SIZING RESULTS & ADJUSTMENTS */}
+      {/* STEP 4: EXECUTIVE SUMMARY & ADJUSTMENTS */}
       {step === 4 && (
         <div className="card-premium">
           <div className="card-header-flex">
-            <h2 className="card-title">Passo 4: Estimativa Gerada & Ajustes Justificados</h2>
-            <span className="badge badge-success">Resultados Gerados</span>
+            <h2 className="card-title">Passo 4: Estimativa Gerada com Sucesso</h2>
+            <span className="badge badge-success">Estimativa Concluída</span>
           </div>
-          <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', marginBottom: '20px' }}>
-            Revise a estimativa gerada pelo PRODIME. Se necessário, você pode realizar ajustes na quantidade final de determinados equipamentos, registrando uma justificativa técnica. Isso não altera as regras-base do sistema.
+          <p style={{ fontSize: '0.88rem', color: 'var(--secondary-light)', marginBottom: '20px' }}>
+            Com base nas informações preenchidas, o PRODIME aplicou as regras técnicas cadastradas e gerou uma estimativa de equipamentos, quantidades e valores referenciais para o seu projeto.
           </p>
 
-          {/* Table Filters */}
-          <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          {/* Executive Summary Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: '#f8fafc' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{selectedSectors.length}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Áreas Analisadas</div>
+            </div>
+            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: '#f8fafc' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{calculateTotalEquipmentQty()}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Equipamentos Estimados</div>
+            </div>
+            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: 'var(--success-bg)', borderColor: '#bbf7d0' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--success)' }}>{formatBRL(calculateTotalInvestment())}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Investimento Referencial</div>
+            </div>
+            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: '#f8fafc' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>
+                {new Set(results.map(r => r.equipment_code)).size}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Tipologias Cadastradas</div>
+            </div>
+          </div>
+
+          {/* Action Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-primary" onClick={() => setStep(5)}>
+                Gerar Relatório
+              </button>
+              <button className="btn btn-secondary" onClick={handleExportCSV}>
+                <Download size={14} style={{ marginRight: '6px' }} /> Exportar Planilha
+              </button>
+              <button className="btn btn-secondary" onClick={() => setStep(3)}>
+                Revisar Parâmetros
+              </button>
+              <button className="btn btn-secondary" style={{ border: '1px solid #16a34a', color: '#16a34a' }} onClick={handleFinalSave}>
+                Salvar Projeto
+              </button>
+            </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <select 
                 className="form-control" 
                 value={filterSector} 
                 onChange={e => setFilterSector(e.target.value)} 
-                style={{ width: '180px', padding: '6px 12px' }}
+                style={{ width: '160px', padding: '6px 12px', margin: 0 }}
               >
-                <option value="ALL">Todos os Ambientes</option>
+                <option value="ALL">Todas as Áreas</option>
                 {selectedSectors.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               <select 
                 className="form-control" 
                 value={filterClass} 
                 onChange={e => setFilterClass(e.target.value)} 
-                style={{ width: '180px', padding: '6px 12px' }}
+                style={{ width: '160px', padding: '6px 12px', margin: 0 }}
               >
-                <option value="ALL">Todas as Classificações</option>
-                <option value="Obrigatório">Somente Obrigatórios</option>
-                <option value="Recomendado">Somente Recomendados</option>
-                <option value="Opcional">Somente Opcionais</option>
+                <option value="ALL">Classificações</option>
+                <option value="Obrigatório">Obrigatórios</option>
+                <option value="Recomendado">Recomendados</option>
+                <option value="Opcional">Opcionais</option>
               </select>
             </div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-              Itens: <span style={{ color: 'var(--primary)' }}>{getFilteredResults().length}</span> | 
-              Investimento Total: <span style={{ color: 'var(--success)' }}>{formatBRL(calculateTotalInvestment())}</span>
-            </div>
           </div>
+
+          <p style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', lineHeight: '1.5', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #cbd5e1' }}>
+            <strong>Revisão de Equipamentos:</strong> Revise os equipamentos estimados abaixo. As quantidades sugeridas foram calculadas a partir das regras-base do PRODIME. Caso a realidade do projeto exija alteração, você pode ajustar a quantidade final e registrar uma justificativa técnica. Esse ajuste não altera a regra original do sistema; ele apenas documenta uma decisão específica deste projeto.
+          </p>
 
           {/* Results Table */}
           <div className="table-wrapper">
@@ -688,6 +942,10 @@ export default function ProjectWizard({
             <button className="btn btn-primary" onClick={() => setStep(5)}>
               Avançar: Relatório <ArrowRight size={16} />
             </button>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', marginTop: '24px', fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }} className="no-print">
+            <strong>Aviso de Responsabilidade:</strong> Esta estimativa não substitui validação técnica, projeto executivo, especificação formal de compra, cotação de mercado ou aprovação por órgãos competentes.
           </div>
         </div>
       )}
