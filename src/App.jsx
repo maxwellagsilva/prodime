@@ -717,6 +717,9 @@ export default function App() {
                 recentLogs={auditLogs}
                 onStartNewProject={() => { setEditingProject(null); setTab('project-wizard'); }}
                 onNavigate={setTab}
+                projects={projects}
+                userProfile={profile}
+                onOpenProject={(proj) => { setEditingProject(proj); setTab('project-wizard'); }}
               />
             )}
 
