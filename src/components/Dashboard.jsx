@@ -95,14 +95,6 @@ export default function Dashboard({
               </p>
             </div>
           </div>
-
-          {isAdmin && (
-            <div style={{ textAlign: 'center', marginTop: '24px' }}>
-              <button className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => onNavigate('manual')}>
-                <BookOpen size={14} /> Ver Manual de Regras de Dimensionamento
-              </button>
-            </div>
-          )}
         </div>
       </div>
     );
