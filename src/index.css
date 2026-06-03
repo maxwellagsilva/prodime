@@ -6,10 +6,10 @@
   --font-display: 'Manrope', sans-serif;
   
   /* Color Palette - Donezo/SaaS Premium Inspiration */
-  --bg-page: #E7E9EB; /* Light grey external background */
-  --bg-app: #FDFDFD;  /* White/Off-white central app container */
-  --bg-panel: #F7F8F8; /* Light grey/grey-beige content panel background */
-  --bg-card: #FFFFFF;
+  --bg-page: #e4e5e6; /* Grey background */
+  --bg-app: #ffffff;  /* White/Off-white central app container */
+  --bg-panel: #f7f7f7; /* Light grey content panels (sidebar, header, main-content) */
+  --bg-card: #ffffff; /* Inner content cards */
   
   --primary: #1E6D46; /* Premium Green / Teal tone from Donezo style */
   --primary-hover: #15452A;
@@ -81,13 +81,14 @@ body.app-active {
 }
 
 body.app-active .app-shell {
-  height: 100vh;
-  max-width: 1440px;
-  margin: 0 auto;
+  height: calc(100vh - 48px);
+  max-width: calc(100vw - 48px);
+  width: 1400px;
+  margin: 24px auto;
   padding: 24px;
-  background-color: var(--bg-page);
-  box-shadow: none;
-  border-radius: 0;
+  background-color: var(--bg-app); /* white background #ffffff */
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-xl); /* 32px rounded corners */
   overflow: hidden;
 }
 
@@ -107,9 +108,11 @@ body.app-active .app-container {
     padding: 12px;
   }
   body.app-active .app-shell {
-    margin: 0 auto;
+    margin: 16px auto;
     padding: 16px;
-    height: 100vh;
+    height: calc(100vh - 32px);
+    max-width: calc(100vw - 32px);
+    border-radius: var(--radius-lg);
   }
 }
 
@@ -129,6 +132,7 @@ body.app-active .app-container {
     margin: 0;
     padding: 0;
     overflow: visible;
+    border-radius: 0;
   }
   body.app-active .app-container {
     flex-direction: column;
@@ -438,13 +442,13 @@ body.app-active .app-container {
 /* Sidebar Navigation */
 .sidebar {
   width: var(--sidebar-width);
-  background-color: #FFFFFF;
+  background-color: var(--bg-panel);
   color: var(--secondary);
   display: flex;
   flex-direction: column;
   padding: 32px 24px;
   border-radius: var(--radius-lg); /* 24px */
-  box-shadow: var(--shadow-md);
+  box-shadow: none;
   border: 1px solid var(--border-color);
   flex-shrink: 0;
   transition: all 0.3s ease;
@@ -462,6 +466,7 @@ body.app-active .app-container {
     transform: translateX(-100%);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
     border: none;
+    background-color: var(--bg-app); /* Reset to white background on mobile */
   }
   .sidebar.active {
     transform: translateX(0);
@@ -640,10 +645,10 @@ body.app-active .app-container {
 
 .app-header {
   height: 70px;
-  background-color: #FFFFFF;
+  background-color: var(--bg-panel);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   padding: 0 24px;
   display: flex;
   justify-content: flex-end;
@@ -696,14 +701,14 @@ body.app-active .app-container {
 /* Main Content Panel */
 .main-content {
   flex-grow: 1;
-  background-color: #FFFFFF;
+  background-color: var(--bg-panel);
   border-radius: var(--radius-lg); /* 24px */
   padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 32px; /* Espaçamento generoso entre blocos: 32px */
   min-width: 0;
-  box-shadow: var(--shadow-md);
+  box-shadow: none;
   border: 1px solid var(--border-color);
   overflow-y: auto;
 }
