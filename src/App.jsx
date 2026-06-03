@@ -69,6 +69,11 @@ export default function App() {
 
   // Monitor Supabase Auth state change
   useEffect(() => {
+    // Se o usuário acessar a rota /app diretamente, ativa a view do aplicativo
+    if (window.location.pathname.startsWith('/app')) {
+      setView('app');
+    }
+
     if (!supabase) return;
 
     // Check current session
@@ -76,6 +81,7 @@ export default function App() {
       if (session) {
         setUser(session.user);
         fetchUserProfile(session.user);
+        setView('app');
       } else {
         loadLocalProjects();
       }
@@ -89,6 +95,7 @@ export default function App() {
       } else if (session) {
         setUser(session.user);
         fetchUserProfile(session.user);
+        setView('app');
       } else {
         setUser(null);
         setProfile(null);
