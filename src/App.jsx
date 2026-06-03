@@ -796,7 +796,6 @@ export default function App() {
                 onSaveRule={handleSaveRule}
                 onSaveUser={handleSaveUser}
                 onDeleteUser={handleDeleteUser}
-                onResetDb={handleResetDatabase}
               />
             )}
 

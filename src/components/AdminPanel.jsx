@@ -22,8 +22,7 @@ export default function AdminPanel({
   onSaveEquipment,
   onSaveRule,
   onSaveUser,
-  onDeleteUser,
-  onResetDb
+  onDeleteUser
 }) {
   const [adminTab, setAdminTab] = useState('equipment');
 
@@ -290,11 +289,6 @@ export default function AdminPanel({
           </h1>
           <p className="page-subtitle">Configure o catálogo global de equipamentos, regras de dimensionamento e usuários.</p>
         </div>
-        {adminTab === 'rules' && (
-          <button className="btn btn-primary" onClick={onResetDb}>
-            Refazer Estrutura do BD (Reset)
-          </button>
-        )}
       </div>
 
       {/* Admin sub-navigation tabs */}
