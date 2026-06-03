@@ -166,6 +166,18 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
+-- Função auxiliar para verificar privilégios de Admin sem causar recursão infinita no RLS
+CREATE OR REPLACE FUNCTION public.is_admin(user_id uuid)
+RETURNS boolean AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = user_id AND role = 'Admin'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
 -- =========================================================================
 -- 3. POLÍTICAS DE SEGURANÇA E RLS (ROW LEVEL SECURITY)
 -- =========================================================================
@@ -187,12 +199,7 @@ CREATE POLICY "Usuários podem ver seus próprios perfis" ON public.profiles
 
 DROP POLICY IF EXISTS "Admins podem ver todos os perfis" ON public.profiles;
 CREATE POLICY "Admins podem ver todos os perfis" ON public.profiles
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles 
-            WHERE profiles.id = auth.uid() AND profiles.role = 'Admin'
-        )
-    );
+    FOR ALL USING (public.is_admin(auth.uid()));
 
 -- Políticas para Equipamentos (Leitura para todos, Escrita apenas para Admins)
 DROP POLICY IF EXISTS "Qualquer um pode ler equipamentos" ON public.equipment;
@@ -201,12 +208,7 @@ CREATE POLICY "Qualquer um pode ler equipamentos" ON public.equipment
 
 DROP POLICY IF EXISTS "Apenas Admins podem modificar equipamentos" ON public.equipment;
 CREATE POLICY "Apenas Admins podem modificar equipamentos" ON public.equipment
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles 
-            WHERE profiles.id = auth.uid() AND profiles.role = 'Admin'
-        )
-    );
+    FOR ALL USING (public.is_admin(auth.uid()));
 
 -- Políticas para Regras de Cálculo (Leitura para todos, Escrita apenas para Admins)
 DROP POLICY IF EXISTS "Qualquer um pode ler regras" ON public.dimensioning_rules;
@@ -215,12 +217,7 @@ CREATE POLICY "Qualquer um pode ler regras" ON public.dimensioning_rules
 
 DROP POLICY IF EXISTS "Apenas Admins podem modificar regras" ON public.dimensioning_rules;
 CREATE POLICY "Apenas Admins podem modificar regras" ON public.dimensioning_rules
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles 
-            WHERE profiles.id = auth.uid() AND profiles.role = 'Admin'
-        )
-    );
+    FOR ALL USING (public.is_admin(auth.uid()));
 
 -- Políticas para Projetos (Apenas o próprio criador acessa)
 DROP POLICY IF EXISTS "Criador do projeto tem acesso total" ON public.projects;
@@ -258,12 +255,7 @@ CREATE POLICY "Acesso total aos resultados vinculados ao projeto do usuário" ON
 -- Políticas para Logs de Auditoria
 DROP POLICY IF EXISTS "Leitura de logs apenas para Admins" ON public.audit_logs;
 CREATE POLICY "Leitura de logs apenas para Admins" ON public.audit_logs
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles 
-            WHERE profiles.id = auth.uid() AND profiles.role = 'Admin'
-        )
-    );
+    FOR SELECT USING (public.is_admin(auth.uid()));
 
 DROP POLICY IF EXISTS "Permitir inserção de logs por usuários logados" ON public.audit_logs;
 CREATE POLICY "Permitir inserção de logs por usuários logados" ON public.audit_logs
