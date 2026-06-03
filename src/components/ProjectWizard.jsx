@@ -462,29 +462,24 @@ export default function ProjectWizard({
     <div className="tab-section active">
       {/* STEP 0: WELCOME & ONBOARDING (For New Estimations) */}
       {step === 0 && (
-        <div className="card-premium" style={{ maxWidth: '800px', margin: '20px auto', padding: '40px 30px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={28} />
+        <div style={{ maxWidth: '800px', margin: '10px auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(30, 109, 70, 0.05)' }}>
+              <TrendingUp size={24} />
             </div>
-            <h1 style={{ fontFamily: 'Outfit', fontSize: '1.8rem', fontWeight: 700, color: 'var(--secondary)' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '-0.5px', margin: 0 }}>
               Vamos criar sua primeira estimativa de equipamentos
-            </h1>
-            <p style={{ color: 'var(--secondary-light)', fontSize: '0.98rem', lineHeight: '1.6', maxWidth: '640px', marginTop: '4px' }}>
+            </h2>
+            <p style={{ color: 'var(--secondary-light)', fontSize: '0.92rem', lineHeight: '1.5', maxWidth: '640px', margin: '4px 0 0 0' }}>
               Em poucos passos, o PRODIME ajuda você a estruturar uma estimativa de equipamentos médico-hospitalares e investimento referencial com base nas características da unidade de saúde informada.
-            </p>
-            <p style={{ color: '#64748b', fontSize: '0.88rem', lineHeight: '1.5', maxWidth: '600px' }}>
-              Você vai cadastrar o projeto, selecionar os setores ou ambientes disponíveis no sistema, preencher os parâmetros solicitados e receber um relatório com quantitativos estimados, valores referenciais e premissas utilizadas no cálculo.
             </p>
           </div>
 
-          <hr style={{ borderColor: 'var(--border-color)' }} />
-
-          <div>
-            <h3 style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: 'var(--secondary)', marginBottom: '12px', fontWeight: 600 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--secondary)', fontWeight: 700, margin: 0 }}>
               O que você terá ao final:
             </h3>
-            <ul style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', fontSize: '0.88rem', color: 'var(--secondary-light)', paddingLeft: '16px' }}>
+            <ul style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px', fontSize: '0.85rem', color: 'var(--secondary-light)', paddingLeft: '16px', margin: 0 }}>
               <li>📋 Lista estimada de equipamentos por área selecionada</li>
               <li>📊 Quantidades sugeridas com base nas regras técnicas do sistema</li>
               <li>🏷️ Valores referenciais por item e por área</li>
@@ -493,18 +488,18 @@ export default function ProjectWizard({
             </ul>
           </div>
 
-          <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', padding: '16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-            <Info size={20} style={{ color: '#d97706', minWidth: '20px', marginTop: '2px' }} />
-            <p style={{ fontSize: '0.82rem', color: '#b45309', lineHeight: '1.4', margin: 0 }}>
+          <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', padding: '12px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <Info size={16} style={{ color: '#d97706', minWidth: '16px', marginTop: '2px' }} />
+            <p style={{ fontSize: '0.8rem', color: '#b45309', lineHeight: '1.4', margin: 0 }}>
               <strong>Aviso curto:</strong> O resultado é uma estimativa de apoio ao planejamento e deve ser validado pelo gestor responsável e por profissionais habilitados antes de qualquer decisão de compra ou implantação.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', marginTop: '10px' }}>
-            <button className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '0.95rem' }} onClick={() => setStep(1)}>
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', marginTop: '4px' }}>
+            <button className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '0.9rem' }} onClick={() => setStep(1)}>
               Começar estimativa real
             </button>
-            <button className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: '0.95rem' }} onClick={runSimulation}>
+            <button className="btn btn-secondary" style={{ padding: '10px 24px', fontSize: '0.9rem' }} onClick={runSimulation}>
               Explorar com exemplo
             </button>
           </div>

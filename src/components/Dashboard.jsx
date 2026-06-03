@@ -45,61 +45,61 @@ export default function Dashboard({
   if (!hasProjects) {
     return (
       <div className="tab-section active">
-        {/* Central Welcome Card */}
-        <div className="card-premium" style={{ textAlign: 'center', padding: '56px 32px', maxWidth: '800px', margin: '0 auto 48px auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(30, 109, 70, 0.1)' }}>
-            <TrendingUp size={32} />
+        {/* Onboarding Hero Section (Directly on grey background) */}
+        <div style={{ textAlign: 'center', padding: '16px 20px', maxWidth: '800px', margin: '0 auto 20px auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(30, 109, 70, 0.05)' }}>
+            <TrendingUp size={24} />
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '-0.5px' }}>Crie sua primeira estimativa de equipamentos</h2>
-          <p style={{ color: 'var(--secondary-light)', fontSize: '1.05rem', lineHeight: '1.6', maxWidth: '600px', margin: 0 }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '-0.5px', margin: 0 }}>Crie sua primeira estimativa de equipamentos</h2>
+          <p style={{ color: 'var(--secondary-light)', fontSize: '0.95rem', lineHeight: '1.5', maxWidth: '640px', margin: 0 }}>
             O PRODIME ajuda a estimar quantitativos de equipamentos médico-hospitalares e valores referenciais de investimento com base nos ambientes, setores e parâmetros que você informar.
           </p>
-          <button className="btn btn-primary" style={{ padding: '14px 32px', fontSize: '1rem', marginTop: '8px' }} onClick={onStartNewProject}>
-            Criar Primeira Estimativa <ArrowRight size={18} style={{ marginLeft: '6px' }} />
+          <button className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '0.9rem', marginTop: '4px' }} onClick={onStartNewProject}>
+            Criar Primeira Estimativa <ArrowRight size={16} style={{ marginLeft: '6px' }} />
           </button>
         </div>
 
         {/* 3-Step Simple Guide */}
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', color: 'var(--secondary)', marginBottom: '32px', textAlign: 'center', fontWeight: 800, letterSpacing: '-0.25px' }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--secondary)', marginBottom: '16px', textAlign: 'center', fontWeight: 800, letterSpacing: '-0.25px' }}>
             Como funciona em 3 etapas simples:
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-            <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '32px 24px', alignItems: 'flex-start' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', alignItems: 'flex-start' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.95rem' }}>
                 1
               </div>
-              <h4 style={{ fontWeight: 800, color: 'var(--secondary)', fontFamily: 'var(--font-display)', fontSize: '1.15rem', letterSpacing: '-0.25px' }}>Identificação e Cadastro</h4>
-              <p style={{ fontSize: '0.88rem', color: 'var(--secondary-light)', lineHeight: '1.6', margin: 0 }}>
+              <h4 style={{ fontWeight: 800, color: 'var(--secondary)', fontFamily: 'var(--font-display)', fontSize: '1.05rem', letterSpacing: '-0.25px', margin: 0 }}>Identificação e Cadastro</h4>
+              <p style={{ fontSize: '0.82rem', color: 'var(--secondary-light)', lineHeight: '1.5', margin: 0 }}>
                 Informe os dados gerais da estimativa, como nome do projeto, tipo de estabelecimento, responsável técnico e localidade.
               </p>
             </div>
 
-            <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '32px 24px', alignItems: 'flex-start' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem' }}>
+            <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', alignItems: 'flex-start' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.95rem' }}>
                 2
               </div>
-              <h4 style={{ fontWeight: 800, color: 'var(--secondary)', fontFamily: 'var(--font-display)', fontSize: '1.15rem', letterSpacing: '-0.25px' }}>Ambientes e Parâmetros</h4>
-              <p style={{ fontSize: '0.88rem', color: 'var(--secondary-light)', lineHeight: '1.6', margin: 0 }}>
+              <h4 style={{ fontWeight: 800, color: 'var(--secondary)', fontFamily: 'var(--font-display)', fontSize: '1.05rem', letterSpacing: '-0.25px', margin: 0 }}>Ambientes e Parâmetros</h4>
+              <p style={{ fontSize: '0.82rem', color: 'var(--secondary-light)', lineHeight: '1.5', margin: 0 }}>
                 Selecione as áreas assistenciais (UTI, CME, Diagnóstico, etc.) e informe as capacidades operacionais (leitos, salas ou boxes).
               </p>
             </div>
 
-            <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '32px 24px', alignItems: 'flex-start' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem' }}>
+            <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', alignItems: 'flex-start' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.95rem' }}>
                 3
               </div>
-              <h4 style={{ fontWeight: 800, color: 'var(--secondary)', fontFamily: 'var(--font-display)', fontSize: '1.15rem', letterSpacing: '-0.25px' }}>Análise e Relatório</h4>
-              <p style={{ fontSize: '0.88rem', color: 'var(--secondary-light)', lineHeight: '1.6', margin: 0 }}>
+              <h4 style={{ fontWeight: 800, color: 'var(--secondary)', fontFamily: 'var(--font-display)', fontSize: '1.05rem', letterSpacing: '-0.25px', margin: 0 }}>Análise e Relatório</h4>
+              <p style={{ fontSize: '0.82rem', color: 'var(--secondary-light)', lineHeight: '1.5', margin: 0 }}>
                 Revise os equipamentos calculados, realize ajustes justificados nas quantidades finais e exporte o relatório técnico-financeiro.
               </p>
             </div>
           </div>
 
           {isAdmin && (
-            <div style={{ textAlign: 'center', marginTop: '40px' }}>
-              <button className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => onNavigate('manual')}>
-                <BookOpen size={16} /> Ver Manual de Regras de Dimensionamento
+            <div style={{ textAlign: 'center', marginTop: '24px' }}>
+              <button className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => onNavigate('manual')}>
+                <BookOpen size={14} /> Ver Manual de Regras de Dimensionamento
               </button>
             </div>
           )}
