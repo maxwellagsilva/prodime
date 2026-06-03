@@ -185,7 +185,7 @@ export default function Dashboard({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span style={{ fontWeight: 700, color: 'var(--secondary)', fontSize: '1.05rem', fontFamily: 'var(--font-display)' }}>{proj.name}</span>
                     <span style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>
-                      {proj.hospital_name} • {proj.city} - {proj.state}
+                      {proj.hospital_name}{proj.city && proj.state ? ` • ${proj.city} - ${proj.state}` : (proj.city || proj.state ? ` • ${proj.city || proj.state}` : '')}
                     </span>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       Atualizado em: {new Date(proj.updated_at || proj.created_at).toLocaleDateString('pt-BR')}

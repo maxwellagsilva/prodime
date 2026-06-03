@@ -605,29 +605,7 @@ export default function ProjectWizard({
                     <option value="Filantrópico">Filantrópico</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Cidade *</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    value={city} 
-                    onChange={e => setCity(e.target.value)} 
-                    placeholder="Ex: São Paulo" 
-                    required 
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Estado (UF) *</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    value={state} 
-                    onChange={e => setState(e.target.value.toUpperCase())} 
-                    placeholder="Ex: SP" 
-                    maxLength={2} 
-                    required 
-                  />
-                </div>
+
                 <div className="form-group">
                   <label className="form-label">Tipo de Projeto</label>
                   <select className="form-control" value={projectType} onChange={e => setProjectType(e.target.value)}>
@@ -1017,7 +995,7 @@ export default function ProjectWizard({
               </div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Localidade</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{city} - {state}</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{(city && state) ? `${city} - ${state}` : (city || state || '-')}</div>
               </div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Tipo de Unidade / Perfil</div>

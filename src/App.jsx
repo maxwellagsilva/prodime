@@ -829,7 +829,7 @@ export default function App() {
                               <tr key={proj.id}>
                                 <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{proj.name}</td>
                                 <td>{proj.hospital_name}</td>
-                                <td>{proj.city} - {proj.state}</td>
+                                <td>{proj.city && proj.state ? `${proj.city} - ${proj.state}` : (proj.city || proj.state || '-')}</td>
                                 <td><span className="badge badge-info">{proj.establishment_type}</span></td>
                                 <td>{proj.technical_manager}</td>
                                 <td>{new Date(proj.updated_at || proj.created_at).toLocaleDateString('pt-BR')}</td>
