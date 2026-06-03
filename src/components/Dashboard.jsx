@@ -16,7 +16,6 @@ import {
 
 export default function Dashboard({ 
   stats, 
-  recentLogs = [], 
   onStartNewProject, 
   onNavigate,
   projects = [],
@@ -206,62 +205,34 @@ export default function Dashboard({
           </div>
         </div>
 
-        {/* Right column: Admin Audit logs OR User Planning Tips */}
-        {isAdmin ? (
-          <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 className="card-title" style={{ fontSize: '1.25rem', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Atividades Recentes</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem', maxHeight: '350px', overflowY: 'auto', paddingRight: '4px' }}>
-              {recentLogs && recentLogs.length > 0 ? (
-                recentLogs.map((log) => (
-                  <div key={log.id} className="log-item" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-                    <div className="log-item-header" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginBottom: '4px' }}>
-                      <span style={{ color: 'var(--primary)' }}>{log.action}</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 500 }}>
-                        {formatDate(log.timestamp).split(' ')[0]}
-                      </span>
-                    </div>
-                    <div style={{ color: 'var(--secondary)', marginBottom: '4px', lineHeight: '1.4' }}>{log.details}</div>
-                    <div style={{ color: 'var(--secondary-light)', fontSize: '0.78rem' }}>
-                      Por: {log.user_email || 'Visitante'}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div style={{ color: 'var(--secondary-light)', textAlign: 'center', padding: '30px 0' }}>
-                  Nenhuma atividade recente.
-                </div>
-              )}
+        {/* Right column: User Planning Tips */}
+        <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.25rem', fontFamily: 'var(--font-display)', fontWeight: 700 }}>
+            <HelpCircle size={22} style={{ color: 'var(--primary)' }} /> Dicas de Planejamento
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', fontSize: '0.88rem', lineHeight: '1.6' }}>
+            <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
+              <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Ajustes de Estimativa</strong>
+              <span style={{ color: 'var(--secondary-light)' }}>
+                No Passo 4, você pode alterar a quantidade sugerida de qualquer equipamento. Lembre-se de registrar uma justificativa técnica para documentar sua decisão.
+              </span>
             </div>
-          </div>
-        ) : (
-          <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.25rem', fontFamily: 'var(--font-display)', fontWeight: 700 }}>
-              <HelpCircle size={22} style={{ color: 'var(--primary)' }} /> Dicas de Planejamento
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', fontSize: '0.88rem', lineHeight: '1.6' }}>
-              <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
-                <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Ajustes de Estimativa</strong>
-                <span style={{ color: 'var(--secondary-light)' }}>
-                  No Passo 4, você pode alterar a quantidade sugerida de qualquer equipamento. Lembre-se de registrar uma justificativa técnica para documentar sua decisão.
-                </span>
-              </div>
-              
-              <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
-                <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Filtros de Relevância</strong>
-                <span style={{ color: 'var(--secondary-light)' }}>
-                  Filtre a estimativa por classificação (Obrigatório, Recomendado, Opcional) para focar nas necessidades prioritárias da sua unidade de saúde.
-                </span>
-              </div>
+            
+            <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
+              <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Filtros de Relevância</strong>
+              <span style={{ color: 'var(--secondary-light)' }}>
+                Filtre a estimativa por classificação (Obrigatório, Recomendado, Opcional) para focar nas necessidades prioritárias da sua unidade de saúde.
+              </span>
+            </div>
 
-              <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
-                <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Privacidade dos Projetos</strong>
-                <span style={{ color: 'var(--secondary-light)' }}>
-                  Não insira dados pessoais de pacientes ou prontuários. A plataforma armazena apenas dados estruturais e quantitativos do planejamento técnico.
-                </span>
-              </div>
+            <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
+              <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Privacidade dos Projetos</strong>
+              <span style={{ color: 'var(--secondary-light)' }}>
+                Não insira dados pessoais de pacientes ou prontuários. A plataforma armazena apenas dados estruturais e quantitativos do planejamento técnico.
+              </span>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

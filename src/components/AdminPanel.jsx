@@ -18,7 +18,6 @@ export default function AdminPanel({
   equipment = [],
   rules = [],
   users = [],
-  logs = [],
   onSaveEquipment,
   onSaveRule,
   onSaveUser,
@@ -301,12 +300,6 @@ export default function AdminPanel({
         >
           <Users size={16} /> Usuários
         </button>
-        <button 
-          style={{ padding: '12px 18px', border: 'none', borderBottom: adminTab === 'logs' ? '3px solid var(--primary)' : '3px solid transparent', background: 'none', cursor: 'pointer', fontWeight: 600, color: adminTab === 'logs' ? 'var(--primary)' : 'var(--secondary-light)', display: 'flex', alignItems: 'center', gap: '8px' }} 
-          onClick={() => setAdminTab('logs')}
-        >
-          <Clock size={16} /> Auditoria & Logs
-        </button>
       </div>
 
       {/* VIEW: EQUIPMENT */}
@@ -484,38 +477,7 @@ export default function AdminPanel({
         </div>
       )}
 
-      {/* VIEW: AUDIT LOGS */}
-      {adminTab === 'logs' && (
-        <div className="card-premium">
-          <h2 className="card-title" style={{ marginBottom: '16px' }}>Logs de Auditoria do Sistema</h2>
-          <div className="table-wrapper">
-            <table className="table-premium">
-              <thead>
-                <tr>
-                  <th>ID Log</th>
-                  <th>Data/Hora</th>
-                  <th>Usuário</th>
-                  <th>Ação</th>
-                  <th>Projeto</th>
-                  <th>Detalhamento</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id}>
-                    <td><code style={{ fontSize: '0.75rem' }}>{String(log.id).substring(0, 8)}...</code></td>
-                    <td>{new Date(log.timestamp).toLocaleString('pt-BR')}</td>
-                    <td>{log.user_email || 'Visitante'}</td>
-                    <td><strong style={{ color: 'var(--primary)' }}>{log.action}</strong></td>
-                    <td>{log.project_id || 'Global'}</td>
-                    <td style={{ fontSize: '0.85rem' }}>{log.details}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+
 
       {/* MODAL: EQUIPMENT FORM */}
       {eqModalOpen && (

@@ -47,7 +47,6 @@ export default function App() {
   const [rules, setRules] = useState(FALLBACK_RULES);
   const [sectorCompatibility, setSectorCompatibility] = useState(FALLBACK_SECTOR_COMPATIBILITY);
   const [adminUsers, setAdminUsers] = useState([]);
-  const [auditLogs, setAuditLogs] = useState([]);
   
   // Dashboard Stats
   const [stats, setStats] = useState({
@@ -202,9 +201,6 @@ export default function App() {
       if (userProfile.role === 'Admin') {
         const { data: usersData } = await supabase.from('profiles').select('*').order('name');
         if (usersData) setAdminUsers(usersData);
-
-        const { data: logsData } = await supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100);
-        if (logsData) setAuditLogs(logsData);
       }
 
       // 5. Fetch Sector Compatibility Matrix
@@ -264,25 +260,8 @@ export default function App() {
     });
   }, [projects, equipment, rules]);
 
-  // Log Audit actions to Supabase
-  const logAudit = async (action, details, projectId = null) => {
-    if (!supabase || !user) return;
-    try {
-      await supabase.from('audit_logs').insert({
-        project_id: projectId,
-        user_email: user.email,
-        action,
-        details
-      });
-      // Reload logs if Admin tab is active
-      if (profile?.role === 'Admin') {
-        const { data: logsData } = await supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100);
-        if (logsData) setAuditLogs(logsData);
-      }
-    } catch(e) {
-      console.error(e);
-    }
-  };
+  // Log Audit actions to Supabase (Disabled/Removed)
+  const logAudit = () => {};
 
   // Authenticate logic
   const handleAuth = async (e) => {
@@ -379,8 +358,6 @@ export default function App() {
         const projectPayload = {
           name: projectData.name,
           hospital_name: projectData.hospital_name,
-          city: projectData.city,
-          state: projectData.state,
           establishment_type: projectData.establishment_type,
           profile: projectData.profile,
           project_type: projectData.project_type,
@@ -619,7 +596,7 @@ export default function App() {
         };
       case 'admin':
         return {
-          title: "Painel Administrativo",
+          title: "Configurações",
           subtitle: "Gerenciamento de regras de cálculo, catálogo de equipamentos e usuários."
         };
       default:
@@ -709,24 +686,28 @@ export default function App() {
               </a>
               {/* Admin-only features */}
               {profile?.role === 'Admin' && (
-                <>
-                  <a 
-                    className={`nav-item ${tab === 'manual' ? 'active' : ''}`}
-                    onClick={() => { setTab('manual'); setMobileMenuOpen(false); }}
-                  >
-                    <BookOpen size={20} className="nav-icon" />
-                    Manual de Regras
-                  </a>
-                  <a 
-                    className={`nav-item ${tab === 'admin' ? 'active' : ''}`}
-                    onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}
-                  >
-                    <Settings size={20} className="nav-icon" />
-                    Painel Admin
-                  </a>
-                </>
+                <a 
+                  className={`nav-item ${tab === 'manual' ? 'active' : ''}`}
+                  onClick={() => { setTab('manual'); setMobileMenuOpen(false); }}
+                >
+                  <BookOpen size={20} className="nav-icon" />
+                  Manual de Regras
+                </a>
               )}
             </nav>
+            
+            {/* Bottom menu item (Configurações) */}
+            {profile?.role === 'Admin' && (
+              <div style={{ marginBottom: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                <a 
+                  className={`nav-item ${tab === 'admin' ? 'active' : ''}`}
+                  onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}
+                >
+                  <Settings size={20} className="nav-icon" />
+                  Configurações
+                </a>
+              </div>
+            )}
             
             {/* User Profile Widget */}
             <div className="user-widget">
@@ -789,7 +770,6 @@ export default function App() {
               {tab === 'dashboard' && (
                 <Dashboard 
                   stats={stats}
-                  recentLogs={auditLogs}
                   onStartNewProject={() => { setEditingProject(null); setTab('project-wizard'); }}
                   onNavigate={setTab}
                   projects={projects}
@@ -817,7 +797,6 @@ export default function App() {
                             <tr>
                               <th>Nome do Projeto</th>
                               <th>Hospital / EAS</th>
-                              <th>Localidade</th>
                               <th>Tipo / Perfil</th>
                               <th>Responsável</th>
                               <th>Última Alteração</th>
@@ -829,7 +808,6 @@ export default function App() {
                               <tr key={proj.id}>
                                 <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{proj.name}</td>
                                 <td>{proj.hospital_name}</td>
-                                <td>{proj.city && proj.state ? `${proj.city} - ${proj.state}` : (proj.city || proj.state || '-')}</td>
                                 <td><span className="badge badge-info">{proj.establishment_type}</span></td>
                                 <td>{proj.technical_manager}</td>
                                 <td>{new Date(proj.updated_at || proj.created_at).toLocaleDateString('pt-BR')}</td>
@@ -886,13 +864,11 @@ export default function App() {
               {/* TAB: MANUAL */}
               {tab === 'manual' && profile?.role === 'Admin' && <Manual />}
 
-              {/* TAB: ADMIN PANEL */}
               {tab === 'admin' && profile?.role === 'Admin' && (
                 <AdminPanel 
                   equipment={equipment}
                   rules={rules}
                   users={adminUsers}
-                  logs={auditLogs}
                   onSaveEquipment={handleSaveEquipment}
                   onSaveRule={handleSaveRule}
                   onSaveUser={handleSaveUser}

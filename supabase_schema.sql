@@ -74,8 +74,7 @@ CREATE TABLE IF NOT EXISTS public.projects (
     user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- Permite NULL para projetos anônimos
     name TEXT NOT NULL,
     hospital_name TEXT NOT NULL,
-    city TEXT NOT NULL,
-    state VARCHAR(2) NOT NULL,
+
     establishment_type TEXT NOT NULL,
     profile TEXT,
     is_public BOOLEAN DEFAULT false,
@@ -122,15 +121,6 @@ CREATE TABLE IF NOT EXISTS public.project_equipment_results (
     adjusted_at TIMESTAMP WITH TIME ZONE
 );
 
--- Tabela de Logs de Auditoria
-CREATE TABLE IF NOT EXISTS public.audit_logs (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    project_id UUID REFERENCES public.projects(id) ON DELETE SET NULL,
-    user_email TEXT,
-    action TEXT NOT NULL,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    details TEXT
-);
 
 
 -- =========================================================================
@@ -190,7 +180,7 @@ ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.project_sectors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sector_parameters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.project_equipment_results ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
 
 -- Políticas para Profiles
 DROP POLICY IF EXISTS "Usuários podem ver seus próprios perfis" ON public.profiles;
@@ -252,14 +242,6 @@ CREATE POLICY "Acesso total aos resultados vinculados ao projeto do usuário" ON
         )
     );
 
--- Políticas para Logs de Auditoria
-DROP POLICY IF EXISTS "Leitura de logs apenas para Admins" ON public.audit_logs;
-CREATE POLICY "Leitura de logs apenas para Admins" ON public.audit_logs
-    FOR SELECT USING (public.is_admin(auth.uid()));
-
-DROP POLICY IF EXISTS "Permitir inserção de logs por usuários logados" ON public.audit_logs;
-CREATE POLICY "Permitir inserção de logs por usuários logados" ON public.audit_logs
-    FOR INSERT WITH CHECK (true);
 
 
 -- =========================================================================
