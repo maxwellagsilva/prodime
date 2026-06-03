@@ -103,3 +103,82 @@ export const FALLBACK_RULES = [
   { id: "RULE011", name: "Centro Cirúrgico - Monitor", sector: "Centro Cirúrgico", parameter: "salas_cirurgicas", operator: ">", value: 0, equipment_code: "10985", calculation_type: "per_parameter", formula_factor: 1, reserve_factor: 0, classification: "Obrigatório", justification: "Monitor multiparamétrico com canais de anestesia por sala.", normative_reference: "RDC 50 Anvisa", active: true },
   { id: "RULE012", name: "Centro Cirúrgico - Recuperação Monitor", sector: "Centro Cirúrgico", parameter: "salas_recuperacao", operator: ">", value: 0, equipment_code: "10985", calculation_type: "per_parameter", formula_factor: 1, reserve_factor: 0, classification: "Obrigatório", justification: "Monitor por leito de recuperação pós-anestésica (RPA).", normative_reference: "RDC 50 Anvisa", active: true }
 ];
+
+export const FALLBACK_SECTOR_COMPATIBILITY = [
+  // Hospital Geral (Todos os setores liberados)
+  { establishment_type: 'Hospital Geral', sector_id: 'UTI Adulto', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'UTI Neonatal', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'UTI Pediátrica', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'Centro Cirúrgico', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'Centro Obstétrico', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'Pronto-Socorro', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'Internação', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'CME', is_compatible: true },
+  { establishment_type: 'Hospital Geral', sector_id: 'Diagnóstico por Imagem', is_compatible: true },
+
+  // Hospital Especializado (Todos os setores liberados)
+  { establishment_type: 'Hospital Especializado', sector_id: 'UTI Adulto', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'UTI Neonatal', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'UTI Pediátrica', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'Centro Cirúrgico', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'Centro Obstétrico', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'Pronto-Socorro', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'Internação', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'CME', is_compatible: true },
+  { establishment_type: 'Hospital Especializado', sector_id: 'Diagnóstico por Imagem', is_compatible: true },
+
+  // Hospital-Dia (Cirurgia, CME, Imagem, Internação. Sem UTI, Obstetrício, Pronto-Socorro)
+  { establishment_type: 'Hospital-Dia', sector_id: 'UTI Adulto', is_compatible: false },
+  { establishment_type: 'Hospital-Dia', sector_id: 'UTI Neonatal', is_compatible: false },
+  { establishment_type: 'Hospital-Dia', sector_id: 'UTI Pediátrica', is_compatible: false },
+  { establishment_type: 'Hospital-Dia', sector_id: 'Centro Cirúrgico', is_compatible: true },
+  { establishment_type: 'Hospital-Dia', sector_id: 'Centro Obstétrico', is_compatible: false },
+  { establishment_type: 'Hospital-Dia', sector_id: 'Pronto-Socorro', is_compatible: false },
+  { establishment_type: 'Hospital-Dia', sector_id: 'Internação', is_compatible: true },
+  { establishment_type: 'Hospital-Dia', sector_id: 'CME', is_compatible: true },
+  { establishment_type: 'Hospital-Dia', sector_id: 'Diagnóstico por Imagem', is_compatible: true },
+
+  // Pronto Atendimento (Pronto-Socorro, CME, Imagem. Sem UTI, Cirúrgico ou Internação)
+  { establishment_type: 'Pronto Atendimento', sector_id: 'UTI Adulto', is_compatible: false },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'UTI Neonatal', is_compatible: false },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'UTI Pediátrica', is_compatible: false },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'Centro Cirúrgico', is_compatible: false },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'Centro Obstétrico', is_compatible: false },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'Pronto-Socorro', is_compatible: true },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'Internação', is_compatible: false },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'CME', is_compatible: true },
+  { establishment_type: 'Pronto Atendimento', sector_id: 'Diagnóstico por Imagem', is_compatible: true },
+
+  // Clínica Ambulatorial (CME, Imagem. Sem UTI, Cirúrgico ou Pronto-Socorro)
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'UTI Adulto', is_compatible: false },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'UTI Neonatal', is_compatible: false },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'UTI Pediátrica', is_compatible: false },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'Centro Cirúrgico', is_compatible: false },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'Centro Obstétrico', is_compatible: false },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'Pronto-Socorro', is_compatible: false },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'Internação', is_compatible: false },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'CME', is_compatible: true },
+  { establishment_type: 'Clínica Ambulatorial', sector_id: 'Diagnóstico por Imagem', is_compatible: true },
+
+  // Unidade Básica de Saúde (CME, Imagem. Sem UTI, Cirúrgico ou Pronto-Socorro)
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'UTI Adulto', is_compatible: false },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'UTI Neonatal', is_compatible: false },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'UTI Pediátrica', is_compatible: false },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'Centro Cirúrgico', is_compatible: false },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'Centro Obstétrico', is_compatible: false },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'Pronto-Socorro', is_compatible: false },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'Internação', is_compatible: false },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'CME', is_compatible: true },
+  { establishment_type: 'Unidade Básica de Saúde', sector_id: 'Diagnóstico por Imagem', is_compatible: true },
+
+  // Centro de Diagnóstico (Apenas CME e Imagem)
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'UTI Adulto', is_compatible: false },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'UTI Neonatal', is_compatible: false },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'UTI Pediátrica', is_compatible: false },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'Centro Cirúrgico', is_compatible: false },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'Centro Obstétrico', is_compatible: false },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'Pronto-Socorro', is_compatible: false },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'Internação', is_compatible: false },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'CME', is_compatible: true },
+  { establishment_type: 'Centro de Diagnóstico', sector_id: 'Diagnóstico por Imagem', is_compatible: true }
+];

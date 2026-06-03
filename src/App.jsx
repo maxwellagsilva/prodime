@@ -25,7 +25,7 @@ import Manual from './components/Manual';
 import AdminPanel from './components/AdminPanel';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfUse from './components/TermsOfUse';
-import { FALLBACK_EQUIPMENT, FALLBACK_RULES } from './utils/constants';
+import { FALLBACK_EQUIPMENT, FALLBACK_RULES, FALLBACK_SECTOR_COMPATIBILITY } from './utils/constants';
 
 export default function App() {
   const [view, setView] = useState('landing'); // 'landing' | 'app'
@@ -45,6 +45,7 @@ export default function App() {
   const [projects, setProjects] = useState([]);
   const [equipment, setEquipment] = useState(FALLBACK_EQUIPMENT);
   const [rules, setRules] = useState(FALLBACK_RULES);
+  const [sectorCompatibility, setSectorCompatibility] = useState(FALLBACK_SECTOR_COMPATIBILITY);
   const [adminUsers, setAdminUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   
@@ -192,6 +193,10 @@ export default function App() {
         const { data: logsData } = await supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100);
         if (logsData) setAuditLogs(logsData);
       }
+
+      // 5. Fetch Sector Compatibility Matrix
+      const { data: compatData } = await supabase.from('establishment_sector_compatibility').select('*');
+      if (compatData && compatData.length > 0) setSectorCompatibility(compatData);
 
     } catch (err) {
       console.error('Error loading Supabase data:', err);
@@ -797,6 +802,7 @@ export default function App() {
                 equipment={equipment}
                 rules={rules}
                 user={user}
+                sectorCompatibility={sectorCompatibility}
                 onSave={handleSaveProject}
                 onCancel={() => { setEditingProject(null); setTab('projects'); }}
               />

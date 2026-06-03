@@ -25,6 +25,7 @@ export default function ProjectWizard({
   equipment = [], 
   rules = [], 
   user = null,
+  sectorCompatibility = [],
   onSave, 
   onCancel 
 }) {
@@ -110,6 +111,41 @@ export default function ProjectWizard({
       setStep(0);
     }
   }, [project]);
+
+  const isSectorCompatible = (sectorId) => {
+    if (!sectorCompatibility || sectorCompatibility.length === 0) return true;
+    const comp = sectorCompatibility.find(
+      c => c.establishment_type === establishmentType && c.sector_id === sectorId
+    );
+    return comp ? comp.is_compatible : true;
+  };
+
+  const handleEstablishmentTypeChange = (newType) => {
+    setEstablishmentType(newType);
+    
+    // Clean incompatible sectors that are currently selected
+    if (selectedSectors.length > 0) {
+      const compatibleSectors = selectedSectors.filter(sectId => {
+        const comp = sectorCompatibility.find(
+          c => c.establishment_type === newType && c.sector_id === sectId
+        );
+        return comp ? comp.is_compatible : true;
+      });
+      
+      if (compatibleSectors.length !== selectedSectors.length) {
+        setSelectedSectors(compatibleSectors);
+        
+        // Clean parameters for removed sectors
+        const newParams = { ...parameters };
+        selectedSectors.forEach(sId => {
+          if (!compatibleSectors.includes(sId)) {
+            delete newParams[sId];
+          }
+        });
+        setParameters(newParams);
+      }
+    }
+  };
 
   // Run simulation flow
   const runSimulation = () => {
@@ -340,19 +376,19 @@ export default function ProjectWizard({
   const categories = [
     { 
       title: "Áreas Assistenciais", 
-      sectors: SECTORS_METADATA.filter(s => ["UTI Adulto", "UTI Neonatal", "UTI Pediátrica"].includes(s.id)) 
+      sectors: SECTORS_METADATA.filter(s => ["UTI Adulto", "UTI Neonatal", "UTI Pediátrica"].includes(s.id) && isSectorCompatible(s.id)) 
     },
     { 
       title: "Áreas de Atendimento e Observação", 
-      sectors: SECTORS_METADATA.filter(s => ["Centro Cirúrgico", "Centro Obstétrico", "Pronto-Socorro", "Internação"].includes(s.id)) 
+      sectors: SECTORS_METADATA.filter(s => ["Centro Cirúrgico", "Centro Obstétrico", "Pronto-Socorro", "Internação"].includes(s.id) && isSectorCompatible(s.id)) 
     },
     { 
       title: "Áreas de Apoio Diagnóstico", 
-      sectors: SECTORS_METADATA.filter(s => ["Diagnóstico por Imagem"].includes(s.id)) 
+      sectors: SECTORS_METADATA.filter(s => ["Diagnóstico por Imagem"].includes(s.id) && isSectorCompatible(s.id)) 
     },
     { 
       title: "Áreas de Apoio Técnico", 
-      sectors: SECTORS_METADATA.filter(s => ["CME"].includes(s.id)) 
+      sectors: SECTORS_METADATA.filter(s => ["CME"].includes(s.id) && isSectorCompatible(s.id)) 
     }
   ];
 
@@ -558,7 +594,7 @@ export default function ProjectWizard({
                   <select 
                     className="form-control" 
                     value={establishmentType} 
-                    onChange={e => setEstablishmentType(e.target.value)} 
+                    onChange={e => handleEstablishmentTypeChange(e.target.value)} 
                     required
                   >
                     <option value="Hospital Geral">Hospital Geral</option>
