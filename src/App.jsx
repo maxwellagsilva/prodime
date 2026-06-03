@@ -71,6 +71,19 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  // Toggle body class 'app-active' to lock viewport scroll when in system view
+  useEffect(() => {
+    const isApp = view !== 'landing' && view !== 'privacy-policy' && view !== 'terms-of-use';
+    if (isApp) {
+      document.body.classList.add('app-active');
+    } else {
+      document.body.classList.remove('app-active');
+    }
+    return () => {
+      document.body.classList.remove('app-active');
+    };
+  }, [view]);
+
   // Monitor Supabase Auth state change
   useEffect(() => {
     // Se o usuário acessar a rota /app diretamente, ativa a view do aplicativo
@@ -713,135 +726,162 @@ export default function App() {
             </div>
           </aside>
           
-          {/* Main Content Area */}
-          <main className="main-content">
-            
-            {/* TAB: DASHBOARD */}
-            {tab === 'dashboard' && (
-              <Dashboard 
-                stats={stats}
-                recentLogs={auditLogs}
-                onStartNewProject={() => { setEditingProject(null); setTab('project-wizard'); }}
-                onNavigate={setTab}
-                projects={projects}
-                userProfile={profile}
-                onOpenProject={(proj) => { setEditingProject(proj); setTab('project-wizard'); }}
-              />
-            )}
-
-            {/* TAB: PROJECTS LIST */}
-            {tab === 'projects' && (
-              <div className="tab-section active">
-                <div className="page-header">
-                  <div>
-                    <h1 className="page-title">Projetos de Dimensionamento</h1>
-                    <p className="page-subtitle">Visualize e gerencie os dimensionamentos salvos.</p>
+          {/* Main Content Area Wrapper */}
+          <div className="content-wrapper">
+            {/* Top Desktop Header Bar */}
+            <header className="app-header no-print">
+              <div className="header-user-widget">
+                <div className="user-info">
+                  <div className="user-avatar">
+                    {profile?.name ? profile.name.substring(0, 2).toUpperCase() : (user?.email ? user.email.substring(0, 2).toUpperCase() : 'G')}
                   </div>
-                  <button className="btn btn-primary" onClick={() => { setEditingProject(null); setTab('project-wizard'); }}>
-                    <Plus size={16} /> Novo Projeto
+                  <div className="user-details">
+                    <span className="user-name">{profile?.name || (user?.email ? user.email.split('@')[0] : 'Visitante')}</span>
+                    <span className="user-role">{profile?.role || 'Guest (Local)'}</span>
+                  </div>
+                </div>
+                {user ? (
+                  <button className="btn btn-secondary btn-sm" onClick={handleSignOut}>
+                    <LogOut size={14} /> Sair
                   </button>
-                </div>
+                ) : (
+                  <button className="btn btn-primary btn-sm" onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}>
+                    <LogIn size={14} /> Fazer Login
+                  </button>
+                )}
+              </div>
+            </header>
 
-                <div className="card-premium">
-                  {projects.length > 0 ? (
-                    <div className="table-wrapper">
-                      <table className="table-premium">
-                        <thead>
-                          <tr>
-                            <th>Nome do Projeto</th>
-                            <th>Hospital / EAS</th>
-                            <th>Localidade</th>
-                            <th>Tipo / Perfil</th>
-                            <th>Responsável</th>
-                            <th>Última Alteração</th>
-                            <th style={{ width: '220px', textAlign: 'center' }}>Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {projects.map((proj) => (
-                            <tr key={proj.id}>
-                              <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{proj.name}</td>
-                              <td>{proj.hospital_name}</td>
-                              <td>{proj.city} - {proj.state}</td>
-                              <td><span className="badge badge-info">{proj.establishment_type}</span></td>
-                              <td>{proj.technical_manager}</td>
-                              <td>{new Date(proj.updated_at || proj.created_at).toLocaleDateString('pt-BR')}</td>
-                              <td style={{ textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                <button 
-                                  className="btn btn-secondary btn-sm"
-                                  onClick={() => { setEditingProject(proj); setTab('project-wizard'); }}
-                                >
-                                  Abrir
-                                </button>
-                                <button 
-                                  className="btn btn-danger btn-sm"
-                                  onClick={() => handleDeleteProject(proj.id)}
-                                >
-                                  Deletar
-                                </button>
-                              </td>
+            {/* Main Content Area */}
+            <main className="main-content">
+              
+              {/* TAB: DASHBOARD */}
+              {tab === 'dashboard' && (
+                <Dashboard 
+                  stats={stats}
+                  recentLogs={auditLogs}
+                  onStartNewProject={() => { setEditingProject(null); setTab('project-wizard'); }}
+                  onNavigate={setTab}
+                  projects={projects}
+                  userProfile={profile}
+                  onOpenProject={(proj) => { setEditingProject(proj); setTab('project-wizard'); }}
+                />
+              )}
+
+              {/* TAB: PROJECTS LIST */}
+              {tab === 'projects' && (
+                <div className="tab-section active">
+                  <div className="page-header">
+                    <div>
+                      <h1 className="page-title">Projetos de Dimensionamento</h1>
+                      <p className="page-subtitle">Visualize e gerencie os dimensionamentos salvos.</p>
+                    </div>
+                    <button className="btn btn-primary" onClick={() => { setEditingProject(null); setTab('project-wizard'); }}>
+                      <Plus size={16} /> Novo Projeto
+                    </button>
+                  </div>
+
+                  <div className="card-premium">
+                    {projects.length > 0 ? (
+                      <div className="table-wrapper">
+                        <table className="table-premium">
+                          <thead>
+                            <tr>
+                              <th>Nome do Projeto</th>
+                              <th>Hospital / EAS</th>
+                              <th>Localidade</th>
+                              <th>Tipo / Perfil</th>
+                              <th>Responsável</th>
+                              <th>Última Alteração</th>
+                              <th style={{ width: '220px', textAlign: 'center' }}>Ações</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '16px', textAlign: 'center' }}>
-                      <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FileText size={28} />
+                          </thead>
+                          <tbody>
+                            {projects.map((proj) => (
+                              <tr key={proj.id}>
+                                <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{proj.name}</td>
+                                <td>{proj.hospital_name}</td>
+                                <td>{proj.city} - {proj.state}</td>
+                                <td><span className="badge badge-info">{proj.establishment_type}</span></td>
+                                <td>{proj.technical_manager}</td>
+                                <td>{new Date(proj.updated_at || proj.created_at).toLocaleDateString('pt-BR')}</td>
+                                <td style={{ textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                  <button 
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={() => { setEditingProject(proj); setTab('project-wizard'); }}
+                                  >
+                                    Abrir
+                                  </button>
+                                  <button 
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => handleDeleteProject(proj.id)}
+                                  >
+                                    Deletar
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                      <div>
-                        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--secondary)', marginBottom: '6px' }}>Nenhum projeto encontrado</h3>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', maxWidth: '400px', margin: '0 auto' }}>Crie seu primeiro projeto para começar a estimar equipamentos médico-hospitalares de forma inteligente.</p>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '16px', textAlign: 'center' }}>
+                        <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <FileText size={28} />
+                        </div>
+                        <div>
+                          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--secondary)', marginBottom: '6px' }}>Nenhum projeto encontrado</h3>
+                          <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', maxWidth: '400px', margin: '0 auto' }}>Crie seu primeiro projeto para começar a estimar equipamentos médico-hospitalares de forma inteligente.</p>
+                        </div>
+                        <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => { setEditingProject(null); setTab('project-wizard'); }}>
+                          <Plus size={16} /> Criar Primeiro Projeto
+                        </button>
                       </div>
-                      <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => { setEditingProject(null); setTab('project-wizard'); }}>
-                        <Plus size={16} /> Criar Primeiro Projeto
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* TAB: PROJECT WIZARD */}
-            {tab === 'project-wizard' && (
-              <ProjectWizard 
-                project={editingProject}
-                equipment={equipment}
-                rules={rules}
-                user={user}
-                sectorCompatibility={sectorCompatibility}
-                onSave={handleSaveProject}
-                onCancel={() => { setEditingProject(null); setTab('projects'); }}
-              />
-            )}
+              {/* TAB: PROJECT WIZARD */}
+              {tab === 'project-wizard' && (
+                <ProjectWizard 
+                  project={editingProject}
+                  equipment={equipment}
+                  rules={rules}
+                  user={user}
+                  sectorCompatibility={sectorCompatibility}
+                  onSave={handleSaveProject}
+                  onCancel={() => { setEditingProject(null); setTab('projects'); }}
+                />
+              )}
 
-            {/* TAB: MANUAL */}
-            {tab === 'manual' && <Manual />}
+              {/* TAB: MANUAL */}
+              {tab === 'manual' && <Manual />}
 
-            {/* TAB: PRIVACY AND TERMS */}
-            {tab === 'privacy-terms' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                <PrivacyPolicy />
-                <TermsOfUse />
-              </div>
-            )}
+              {/* TAB: PRIVACY AND TERMS */}
+              {tab === 'privacy-terms' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                  <PrivacyPolicy />
+                  <TermsOfUse />
+                </div>
+              )}
 
-            {/* TAB: ADMIN PANEL */}
-            {tab === 'admin' && profile?.role === 'Admin' && (
-              <AdminPanel 
-                equipment={equipment}
-                rules={rules}
-                users={adminUsers}
-                logs={auditLogs}
-                onSaveEquipment={handleSaveEquipment}
-                onSaveRule={handleSaveRule}
-                onSaveUser={handleSaveUser}
-                onDeleteUser={handleDeleteUser}
-              />
-            )}
+              {/* TAB: ADMIN PANEL */}
+              {tab === 'admin' && profile?.role === 'Admin' && (
+                <AdminPanel 
+                  equipment={equipment}
+                  rules={rules}
+                  users={adminUsers}
+                  logs={auditLogs}
+                  onSaveEquipment={handleSaveEquipment}
+                  onSaveRule={handleSaveRule}
+                  onSaveUser={handleSaveUser}
+                  onDeleteUser={handleDeleteUser}
+                />
+              )}
 
-          </main>
+            </main>
+          </div>
         </div>
       </div>
       )}

@@ -61,6 +61,11 @@ body {
   flex-direction: column;
 }
 
+body.app-active {
+  height: 100vh;
+  overflow: hidden;
+}
+
 /* App Shell wrapping layout container */
 .app-shell {
   width: 100%;
@@ -75,20 +80,61 @@ body {
   flex-grow: 1;
 }
 
+body.app-active .app-shell {
+  height: 100vh;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: var(--bg-page);
+  box-shadow: none;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+body.app-active .app-container {
+  display: flex;
+  gap: 24px;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
 @media (max-width: 1024px) {
   .app-shell {
     margin: 16px auto;
     border-radius: var(--radius-lg);
     padding: 12px;
   }
+  body.app-active .app-shell {
+    margin: 0 auto;
+    padding: 16px;
+    height: 100vh;
+  }
 }
 
 @media (max-width: 768px) {
+  body.app-active {
+    height: auto;
+    overflow: auto;
+  }
   .app-shell {
     margin: 0;
     border-radius: 0;
     padding: 0;
     box-shadow: none;
+  }
+  body.app-active .app-shell {
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  body.app-active .app-container {
+    flex-direction: column;
+    gap: 0;
+    height: auto;
+    overflow: visible;
   }
 }
 
@@ -392,13 +438,14 @@ body {
 /* Sidebar Navigation */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-2) 100%);
-  color: white;
+  background-color: #FFFFFF;
+  color: var(--secondary);
   display: flex;
   flex-direction: column;
   padding: 32px 24px;
   border-radius: var(--radius-lg); /* 24px */
   box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
   flex-shrink: 0;
   transition: all 0.3s ease;
 }
@@ -414,6 +461,7 @@ body {
     border-radius: 0;
     transform: translateX(-100%);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+    border: none;
   }
   .sidebar.active {
     transform: translateX(0);
@@ -425,12 +473,12 @@ body {
   align-items: center;
   gap: 12px;
   padding: 0 8px 24px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
 }
 
 .brand-icon {
-  background: var(--primary-gradient);
+  background: var(--primary);
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
@@ -441,7 +489,7 @@ body {
   font-family: var(--font-display);
   font-size: 1.35rem;
   color: white;
-  box-shadow: 0 4px 12px rgba(30, 109, 70, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 109, 70, 0.15);
 }
 
 .brand-name {
@@ -449,9 +497,7 @@ body {
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  background: linear-gradient(to right, #ffffff, #94a3b8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--secondary);
 }
 
 .nav-menu {
@@ -466,40 +512,62 @@ body {
   align-items: center;
   gap: 14px;
   padding: 14px 20px;
-  color: #94a3b8;
+  color: var(--secondary-light);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 400; /* Thinner inactive text */
   font-size: 0.95rem;
-  border-radius: 999px; /* Rounded pill active/inactive */
+  border-radius: 0;
   cursor: pointer;
   transition: all 0.25s ease;
+  background-color: transparent;
+  position: relative;
+}
+
+.nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+  stroke: var(--secondary-light);
+  stroke-width: 1.5; /* Thinner inactive icon */
+  fill: none;
+  transition: all 0.2s;
 }
 
 .nav-item:hover {
-  color: white;
-  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--primary);
+  background-color: transparent;
   transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: var(--primary-gradient);
-  color: white;
-  box-shadow: 0 4px 12px rgba(30, 109, 70, 0.2);
+  background: transparent;
+  color: var(--primary);
+  font-weight: 700; /* Bold green text when active */
+  box-shadow: none;
 }
 
-.nav-icon {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
+.nav-item.active .nav-icon {
+  stroke: var(--primary);
+  stroke-width: 2.2; /* Bold active icon */
 }
 
-/* User Widget in Sidebar */
-.user-widget {
+/* Selected vertical indicator pill on the left edge */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -24px; /* Align to the absolute left of sidebar container */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 32px;
+  background-color: var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+
+/* User Widget inside Sidebar - Mobile Mode only on desktop hidden */
+.sidebar .user-widget {
   padding: 20px 16px;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--primary-subtle);
+  border: 1px solid var(--primary-light);
   border-radius: var(--radius-md); /* 16px */
   margin-top: auto;
   display: flex;
@@ -507,13 +575,13 @@ body {
   gap: 16px;
 }
 
-.user-info {
+.sidebar .user-info {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.user-avatar {
+.sidebar .user-avatar {
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -524,52 +592,138 @@ body {
   justify-content: center;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.user-details {
+.sidebar .user-details {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.user-name {
+.sidebar .user-name {
   font-size: 0.9rem;
   font-weight: 700;
-  color: white;
+  color: var(--secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.user-role {
+.sidebar .user-role {
   font-size: 0.72rem;
-  color: #94a3b8;
-  background-color: rgba(0, 0, 0, 0.25);
+  color: var(--primary);
+  background-color: var(--primary-light);
   padding: 2px 8px;
   border-radius: 20px;
   width: fit-content;
   margin-top: 3px;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+@media (min-width: 769px) {
+  .sidebar .user-widget {
+    display: none; /* Hide in sidebar on desktop, shown in app-header instead */
+  }
+}
+
+/* Content Wrapper & App Header */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-grow: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-header {
+  height: 70px;
+  background-color: #FFFFFF;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  padding: 0 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header-user-widget {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-user-widget .user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-user-widget .user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.header-user-widget .user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-user-widget .user-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+.header-user-widget .user-role {
+  font-size: 0.75rem;
+  color: var(--secondary-light);
 }
 
 /* Main Content Panel */
 .main-content {
   flex-grow: 1;
-  background-color: var(--bg-panel);
+  background-color: #FFFFFF;
   border-radius: var(--radius-lg); /* 24px */
   padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 32px; /* Espaçamento generoso entre blocos: 32px */
   min-width: 0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  overflow-y: auto;
 }
 
 @media (max-width: 768px) {
+  .content-wrapper {
+    gap: 0;
+    overflow: visible;
+    height: auto;
+  }
+  .app-header {
+    display: none; /* Mobile uses mobile-header or sidebar widget */
+  }
   .main-content {
     border-radius: 0;
     padding: 20px;
     gap: 24px;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
   }
 }
 
