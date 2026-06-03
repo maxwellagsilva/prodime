@@ -650,8 +650,8 @@ export default function App() {
             <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div className="lp-brand" onClick={() => setView('landing')} style={{ cursor: 'pointer' }}>
-              <img src="/PRODIME.png" alt="PRODIME" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
+            <div className="lp-brand" onClick={() => setView('landing')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <img src="/PRODIME.png" alt="PRODIME" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
             </div>
             <div style={{ width: '24px' }}></div>
           </header>
@@ -663,8 +663,8 @@ export default function App() {
 
           {/* Sidebar Navigation */}
           <aside className={`sidebar no-print ${mobileMenuOpen ? 'active' : ''}`}>
-            <div className="brand" onClick={() => setView('landing')} style={{ cursor: 'pointer', padding: '0 8px 24px 8px', display: 'flex', alignItems: 'center' }}>
-              <img src="/PRODIME.png" alt="PRODIME" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+            <div className="brand" onClick={() => setView('landing')} style={{ cursor: 'pointer', padding: '0 0 24px 0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <img src="/PRODIME.png" alt="PRODIME" style={{ height: '52px', width: 'auto', objectFit: 'contain' }} />
             </div>
             
             <nav className="nav-menu">
