@@ -11,14 +11,7 @@ import {
 export default function Manual() {
   return (
     <div className="tab-section active">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <BookOpen size={24} /> Manual de Regras de Dimensionamento
-          </h1>
-          <p className="page-subtitle">Guia prático para cadastro de regras de cálculo e parametrização sob a RDC 50.</p>
-        </div>
-      </div>
+
 
       <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div>

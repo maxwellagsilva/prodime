@@ -589,9 +589,42 @@ export default function App() {
     }
   };
 
-  const handleResetDatabase = async () => {
-    if (!confirm('Deseja realmente reconstruir e reinicializar o banco de dados? Isso recarregará o seed padrão e sobrescreverá regras e equipamentos existentes.')) return;
-    showToast('Recurso indisponível localmente. Por favor, execute o script SQL contido em supabase_schema.sql no console do Supabase para resetar e seedar o banco.', 'warning');
+  const getHeaderInfo = () => {
+    switch (tab) {
+      case 'dashboard':
+        if (projects.length === 0) {
+          return {
+            title: "Bem-vindo ao PRODIME",
+            subtitle: "Ferramenta de apoio ao planejamento de equipamentos para unidades de saúde."
+          };
+        }
+        return {
+          title: "Dashboard Operacional",
+          subtitle: "Acompanhe suas estimativas e planejamento de equipamentos."
+        };
+      case 'projects':
+        return {
+          title: "Projetos de Dimensionamento",
+          subtitle: "Visualize e gerencie os dimensionamentos salvos."
+        };
+      case 'project-wizard':
+        return {
+          title: editingProject ? "Editar Projeto" : "Novo Projeto de Dimensionamento",
+          subtitle: editingProject ? `Editando o projeto: ${editingProject.name}` : "Crie uma nova estimativa de equipamentos em poucos passos."
+        };
+      case 'manual':
+        return {
+          title: "Manual de Regras de Dimensionamento",
+          subtitle: "Consulte os parâmetros, ambientes e legislações aplicadas no sistema."
+        };
+      case 'admin':
+        return {
+          title: "Painel Administrativo",
+          subtitle: "Gerenciamento de regras de cálculo, catálogo de equipamentos e usuários."
+        };
+      default:
+        return { title: "", subtitle: "" };
+    }
   };
 
   return (
@@ -674,31 +707,24 @@ export default function App() {
                 <FileText size={20} className="nav-icon" />
                 Projetos
               </a>
-              <a 
-                className={`nav-item ${tab === 'manual' ? 'active' : ''}`}
-                onClick={() => { setTab('manual'); setMobileMenuOpen(false); }}
-              >
-                <BookOpen size={20} className="nav-icon" />
-                Manual de Regras
-              </a>
-
-              <a 
-                className={`nav-item ${tab === 'privacy-terms' ? 'active' : ''}`}
-                onClick={() => { setTab('privacy-terms'); setMobileMenuOpen(false); }}
-              >
-                <Shield size={20} className="nav-icon" />
-                Termos e Privacidade
-              </a>
-              
-              {/* Admin features if role matches */}
+              {/* Admin-only features */}
               {profile?.role === 'Admin' && (
-                <a 
-                  className={`nav-item ${tab === 'admin' ? 'active' : ''}`}
-                  onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}
-                >
-                  <Settings size={20} className="nav-icon" />
-                  Painel Admin
-                </a>
+                <>
+                  <a 
+                    className={`nav-item ${tab === 'manual' ? 'active' : ''}`}
+                    onClick={() => { setTab('manual'); setMobileMenuOpen(false); }}
+                  >
+                    <BookOpen size={20} className="nav-icon" />
+                    Manual de Regras
+                  </a>
+                  <a 
+                    className={`nav-item ${tab === 'admin' ? 'active' : ''}`}
+                    onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}
+                  >
+                    <Settings size={20} className="nav-icon" />
+                    Painel Admin
+                  </a>
+                </>
               )}
             </nav>
             
@@ -730,6 +756,10 @@ export default function App() {
           <div className="content-wrapper">
             {/* Top Desktop Header Bar */}
             <header className="app-header no-print">
+              <div className="header-title-area">
+                <h1 className="header-title">{getHeaderInfo().title}</h1>
+                <p className="header-subtitle">{getHeaderInfo().subtitle}</p>
+              </div>
               <div className="header-user-widget">
                 <div className="user-info">
                   <div className="user-avatar">
@@ -771,15 +801,13 @@ export default function App() {
               {/* TAB: PROJECTS LIST */}
               {tab === 'projects' && (
                 <div className="tab-section active">
-                  <div className="page-header">
-                    <div>
-                      <h1 className="page-title">Projetos de Dimensionamento</h1>
-                      <p className="page-subtitle">Visualize e gerencie os dimensionamentos salvos.</p>
+                  {projects.length > 0 && (
+                    <div className="page-actions">
+                      <button className="btn btn-primary" onClick={() => { setEditingProject(null); setTab('project-wizard'); }}>
+                        <Plus size={16} /> Novo Projeto
+                      </button>
                     </div>
-                    <button className="btn btn-primary" onClick={() => { setEditingProject(null); setTab('project-wizard'); }}>
-                      <Plus size={16} /> Novo Projeto
-                    </button>
-                  </div>
+                  )}
 
                   <div className="card-premium">
                     {projects.length > 0 ? (
@@ -856,15 +884,7 @@ export default function App() {
               )}
 
               {/* TAB: MANUAL */}
-              {tab === 'manual' && <Manual />}
-
-              {/* TAB: PRIVACY AND TERMS */}
-              {tab === 'privacy-terms' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                  <PrivacyPolicy />
-                  <TermsOfUse />
-                </div>
-              )}
+              {tab === 'manual' && profile?.role === 'Admin' && <Manual />}
 
               {/* TAB: ADMIN PANEL */}
               {tab === 'admin' && profile?.role === 'Admin' && (

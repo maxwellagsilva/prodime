@@ -281,16 +281,6 @@ export default function AdminPanel({
 
   return (
     <div className="tab-section active">
-      {/* Page Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Settings size={24} /> Painel Administrativo
-          </h1>
-          <p className="page-subtitle">Configure o catálogo global de equipamentos, regras de dimensionamento e usuários.</p>
-        </div>
-      </div>
-
       {/* Admin sub-navigation tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', gap: '20px', marginBottom: '8px' }}>
         <button 

@@ -45,17 +45,6 @@ export default function Dashboard({
   if (!hasProjects) {
     return (
       <div className="tab-section active">
-        {/* Page Header */}
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Bem-vindo ao PRODIME</h1>
-            <p className="page-subtitle">Ferramenta de apoio ao planejamento de equipamentos para unidades de saúde.</p>
-          </div>
-          <button className="btn btn-primary" onClick={onStartNewProject}>
-            <Plus size={16} /> Novo Projeto
-          </button>
-        </div>
-
         {/* Central Welcome Card */}
         <div className="card-premium" style={{ textAlign: 'center', padding: '56px 32px', maxWidth: '800px', margin: '0 auto 48px auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
           <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(30, 109, 70, 0.1)' }}>
@@ -107,11 +96,13 @@ export default function Dashboard({
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: '40px' }}>
-            <button className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => onNavigate('manual')}>
-              <BookOpen size={16} /> Ver Manual de Regras de Dimensionamento
-            </button>
-          </div>
+          {isAdmin && (
+            <div style={{ textAlign: 'center', marginTop: '40px' }}>
+              <button className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => onNavigate('manual')}>
+                <BookOpen size={16} /> Ver Manual de Regras de Dimensionamento
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -120,12 +111,7 @@ export default function Dashboard({
   // State B: Active State (1+ Projects) - Main Operational Dashboard
   return (
     <div className="tab-section active">
-      {/* Page Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Dashboard Operacional</h1>
-          <p className="page-subtitle">Acompanhe suas estimativas e planejamento de equipamentos.</p>
-        </div>
+      <div className="page-actions">
         <button className="btn btn-primary" onClick={onStartNewProject}>
           <Plus size={16} /> Novo Projeto
         </button>

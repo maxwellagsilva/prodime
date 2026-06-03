@@ -514,11 +514,7 @@ export default function ProjectWizard({
       {/* HUMAN PROGRESS & STEPPER HEADER (Shown for steps > 0) */}
       {step > 0 && (
         <>
-          <div className="page-header no-print">
-            <div>
-              <h1 className="page-title">{project ? 'Editar Estimativa' : 'Novo Planejamento de Estimativa'}</h1>
-              <p className="page-subtitle">Configure as características do seu projeto passo a passo para calcular o parque recomendado.</p>
-            </div>
+          <div className="page-actions no-print">
             <button className="btn btn-secondary" onClick={onCancel}>Voltar para Lista</button>
           </div>
 

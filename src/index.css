@@ -644,16 +644,51 @@ body.app-active .app-container {
 }
 
 .app-header {
-  height: 70px;
+  height: 80px;
   background-color: var(--bg-panel);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   box-shadow: none;
   padding: 0 24px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+}
+
+.header-title-area {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding-right: 20px;
+  text-align: left;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--secondary);
+  letter-spacing: -0.25px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-subtitle {
+  font-size: 0.85rem;
+  color: var(--secondary-light);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
 }
 
 .header-user-widget {
