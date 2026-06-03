@@ -619,7 +619,8 @@ export default function App() {
         <TermsOfUse onBack={() => setView('landing')} />
       ) : (
         /* APP WORKSPACE VIEW */
-        <div className="app-container">
+        <div className="app-shell">
+          <div className="app-container">
           
           {/* Mobile Top Header */}
           <header className="mobile-header no-print">
@@ -742,22 +743,22 @@ export default function App() {
                 </div>
 
                 <div className="card-premium">
-                  <div className="table-wrapper">
-                    <table className="table-premium">
-                      <thead>
-                        <tr>
-                          <th>Nome do Projeto</th>
-                          <th>Hospital / EAS</th>
-                          <th>Localidade</th>
-                          <th>Tipo / Perfil</th>
-                          <th>Responsável</th>
-                          <th>Última Alteração</th>
-                          <th style={{ width: '220px', textAlign: 'center' }}>Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {projects.length > 0 ? (
-                          projects.map((proj) => (
+                  {projects.length > 0 ? (
+                    <div className="table-wrapper">
+                      <table className="table-premium">
+                        <thead>
+                          <tr>
+                            <th>Nome do Projeto</th>
+                            <th>Hospital / EAS</th>
+                            <th>Localidade</th>
+                            <th>Tipo / Perfil</th>
+                            <th>Responsável</th>
+                            <th>Última Alteração</th>
+                            <th style={{ width: '220px', textAlign: 'center' }}>Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {projects.map((proj) => (
                             <tr key={proj.id}>
                               <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{proj.name}</td>
                               <td>{proj.hospital_name}</td>
@@ -780,17 +781,24 @@ export default function App() {
                                 </button>
                               </td>
                             </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={7} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--secondary-light)' }}>
-                              Nenhum projeto encontrado. Clique em "Novo Projeto" para iniciar!
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '16px', textAlign: 'center' }}>
+                      <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FileText size={28} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--secondary)', marginBottom: '6px' }}>Nenhum projeto encontrado</h3>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--secondary-light)', maxWidth: '400px', margin: '0 auto' }}>Crie seu primeiro projeto para começar a estimar equipamentos médico-hospitalares de forma inteligente.</p>
+                      </div>
+                      <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => { setEditingProject(null); setTab('project-wizard'); }}>
+                        <Plus size={16} /> Criar Primeiro Projeto
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -835,6 +843,7 @@ export default function App() {
 
           </main>
         </div>
+      </div>
       )}
 
       {/* AUTHENTICATION MODAL */}

@@ -395,60 +395,60 @@ export default function ProjectWizard({
   // Render Sidebar Component for Steps 1, 2, 3
   const renderSidebarSummary = () => {
     return (
-      <div className="card-premium no-print" style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem', minWidth: '280px' }}>
-        <h3 style={{ fontFamily: 'Outfit', fontWeight: 600, color: 'var(--secondary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Sliders size={16} /> Resumo do Planejamento
+      <div className="card-premium no-print" style={{ position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '20px', fontSize: '0.85rem', minWidth: '280px', boxShadow: 'var(--shadow-md)' }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--secondary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.05rem', letterSpacing: '-0.25px' }}>
+          <Sliders size={18} style={{ color: 'var(--primary)' }} /> Resumo do Planejamento
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 600 }}>Identificação do Projeto</span>
-            <strong style={{ display: 'block', color: 'var(--primary)', marginTop: '2px' }}>{name || <span style={{ color: '#cbd5e1', fontStyle: 'italic', fontWeight: 'normal' }}>Não nomeado</span>}</strong>
-            {hospitalName && <span style={{ display: 'block', color: 'var(--secondary-light)', fontSize: '0.78rem', marginTop: '2px' }}>{hospitalName} {city && `(${city}-${state})`}</span>}
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>Identificação do Projeto</span>
+            <strong style={{ display: 'block', color: 'var(--secondary)', marginTop: '4px', fontSize: '0.92rem' }}>{name || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 'normal' }}>Não nomeado</span>}</strong>
+            {hospitalName && <span style={{ display: 'block', color: 'var(--secondary-light)', fontSize: '0.8rem', marginTop: '2px', fontWeight: 500 }}>{hospitalName} {city && `(${city}-${state})`}</span>}
           </div>
           
           <div>
-            <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 600 }}>Áreas Selecionadas ({selectedSectors.length})</span>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>Áreas Selecionadas ({selectedSectors.length})</span>
             {selectedSectors.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                 {selectedSectors.map(s => (
-                  <span key={s} className="badge badge-info" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>{s}</span>
+                  <span key={s} className="badge badge-info" style={{ fontSize: '0.72rem', padding: '4px 8px' }}>{s}</span>
                 ))}
               </div>
             ) : (
-              <span style={{ color: '#cbd5e1', fontStyle: 'italic', display: 'block', marginTop: '4px' }}>Nenhuma área selecionada</span>
+              <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', display: 'block', marginTop: '6px', fontSize: '0.8rem' }}>Nenhuma área selecionada</span>
             )}
           </div>
 
           <div>
-            <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 600 }}>Parâmetros Informados</span>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>Parâmetros Informados</span>
             {Object.keys(parameters).length > 0 && selectedSectors.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
                 {selectedSectors.map(sectId => {
                   const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
                   if (!sectMeta) return null;
                   return sectMeta.params.map(p => {
                     const val = parameters[sectId]?.[p.name] || 0;
                     return (
-                      <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dotted #e2e8f0', paddingBottom: '2px', fontSize: '0.78rem' }}>
+                      <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dotted var(--border-color)', paddingBottom: '4px', fontSize: '0.8rem', color: 'var(--secondary-light)' }}>
                         <span>{sectId} ({p.label.replace("Número de ", "").replace("Leitos de ", "").replace("Salas de ", "")}):</span>
-                        <strong>{val}</strong>
+                        <strong style={{ color: 'var(--secondary)' }}>{val}</strong>
                       </div>
                     );
                   });
                 })}
               </div>
             ) : (
-              <span style={{ color: '#cbd5e1', fontStyle: 'italic', display: 'block', marginTop: '4px' }}>Aguardando preenchimento</span>
+              <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', display: 'block', marginTop: '6px', fontSize: '0.8rem' }}>Aguardando preenchimento</span>
             )}
           </div>
 
-          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', marginTop: '8px', textAlign: 'center' }}>
+          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', marginTop: '8px', textAlign: 'center' }}>
             {name && selectedSectors.length > 0 ? (
-              <span style={{ color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem' }}>
+              <span style={{ color: 'var(--success)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }} className="badge badge-success">
                 ✔️ Pronto para gerar estimativa
               </span>
             ) : (
-              <span style={{ color: '#d97706', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem' }}>
+              <span style={{ color: 'var(--warning)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }} className="badge badge-warning">
                 ⚠️ Aguardando preenchimento
               </span>
             )}
@@ -777,8 +777,8 @@ export default function ProjectWizard({
               {selectedSectors.map(sectId => {
                 const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
                 return (
-                  <div key={sectId} className="parameter-section-card" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', backgroundColor: '#f8fafc' }}>
-                    <div className="parameter-section-title" style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: '12px', fontFamily: 'Outfit', fontSize: '0.95rem' }}>{sectMeta.name}</div>
+                  <div key={sectId} className="parameter-section-card" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-panel)' }}>
+                    <div className="parameter-section-title" style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '16px', fontFamily: 'var(--font-display)', fontSize: '1.05rem', letterSpacing: '-0.25px' }}>{sectMeta.name}</div>
                     <div className="parameter-inputs-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       {sectMeta.params.map(p => {
                         const paramValue = parameters[sectId]?.[p.name] !== undefined ? parameters[sectId][p.name] : 0;
@@ -827,24 +827,24 @@ export default function ProjectWizard({
           </p>
 
           {/* Executive Summary Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: '#f8fafc' }}>
-              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{selectedSectors.length}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Áreas Analisadas</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+            <div style={{ border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: 'var(--bg-panel)' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{selectedSectors.length}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Áreas Analisadas</div>
             </div>
-            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: '#f8fafc' }}>
-              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{calculateTotalEquipmentQty()}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Equipamentos Estimados</div>
+            <div style={{ border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: 'var(--bg-panel)' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{calculateTotalEquipmentQty()}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Equipamentos Estimados</div>
             </div>
-            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: 'var(--success-bg)', borderColor: '#bbf7d0' }}>
-              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--success)' }}>{formatBRL(calculateTotalInvestment())}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Investimento Referencial</div>
+            <div style={{ border: '1px solid var(--primary-light)', padding: '20px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: 'var(--primary-subtle)' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{formatBRL(calculateTotalInvestment())}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Investimento Referencial</div>
             </div>
-            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: '#f8fafc' }}>
-              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>
+            <div style={{ border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: 'var(--bg-panel)' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>
                 {new Set(results.map(r => r.equipment_code)).size}
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)', marginTop: '4px' }}>Tipologias Cadastradas</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Tipologias Cadastradas</div>
             </div>
           </div>
 
@@ -869,7 +869,7 @@ export default function ProjectWizard({
                 className="form-control" 
                 value={filterSector} 
                 onChange={e => setFilterSector(e.target.value)} 
-                style={{ width: '160px', padding: '6px 12px', margin: 0 }}
+                style={{ width: '180px', margin: 0 }}
               >
                 <option value="ALL">Todas as Áreas</option>
                 {selectedSectors.map(s => <option key={s} value={s}>{s}</option>)}
@@ -878,7 +878,7 @@ export default function ProjectWizard({
                 className="form-control" 
                 value={filterClass} 
                 onChange={e => setFilterClass(e.target.value)} 
-                style={{ width: '160px', padding: '6px 12px', margin: 0 }}
+                style={{ width: '180px', margin: 0 }}
               >
                 <option value="ALL">Classificações</option>
                 <option value="Obrigatório">Obrigatórios</option>
@@ -888,7 +888,7 @@ export default function ProjectWizard({
             </div>
           </div>
 
-          <p style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', lineHeight: '1.5', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #cbd5e1' }}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--secondary-light)', lineHeight: '1.6', backgroundColor: 'var(--primary-subtle)', padding: '16px 20px', borderRadius: 'var(--radius-sm)', marginBottom: '24px', border: '1px solid var(--primary-light)' }}>
             <strong>Revisão de Equipamentos:</strong> Revise os equipamentos estimados abaixo. As quantidades sugeridas foram calculadas a partir das regras-base do PRODIME. Caso a realidade do projeto exija alteração, você pode ajustar a quantidade final e registrar uma justificativa técnica. Esse ajuste não altera a regra original do sistema; ele apenas documenta uma decisão específica deste projeto.
           </p>
 
@@ -1021,50 +1021,50 @@ export default function ProjectWizard({
             </div>
 
             {/* Project Details Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '30px', backgroundColor: '#f8fafc', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px', backgroundColor: 'var(--bg-panel)', padding: '24px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Projeto</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{name}</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Projeto</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{name}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Unidade de Saúde</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{hospitalName}</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Unidade de Saúde</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{hospitalName}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Localidade</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{city} - {state}</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Localidade</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{city} - {state}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Tipo de Unidade / Perfil</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{establishmentType} ({profile})</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Tipo de Unidade / Perfil</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{establishmentType} ({profile})</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Responsável pelo Preenchimento</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{technicalManager}</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Responsável pelo Preenchimento</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{technicalManager}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-light)', fontWeight: 600 }}>Moeda / Preços</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{currency} ({priceDate})</div>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Moeda / Preços</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{currency} ({priceDate})</div>
               </div>
             </div>
 
             {/* Overview Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '30px' }}>
-              <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{selectedSectors.length}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Ambientes Selecionados</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+              <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-panel)' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{selectedSectors.length}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Ambientes Selecionados</div>
               </div>
-              <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{calculateTotalCapacity()}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Capacidade Total Informada</div>
+              <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-panel)' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{calculateTotalCapacity()}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Capacidade Total</div>
               </div>
-              <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)' }}>{calculateTotalEquipmentQty()}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Equipamentos Estimados</div>
+              <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-panel)' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{calculateTotalEquipmentQty()}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Equipamentos Estimados</div>
               </div>
-              <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--success-bg)', borderColor: '#bbf7d0' }}>
-                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--success)' }}>{formatBRL(calculateTotalInvestment())}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--secondary-light)' }}>Investimento Estimado</div>
+              <div style={{ textAlign: 'center', border: '1px solid var(--primary-light)', padding: '20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--primary-subtle)' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{formatBRL(calculateTotalInvestment())}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Investimento Estimado</div>
               </div>
             </div>
 
