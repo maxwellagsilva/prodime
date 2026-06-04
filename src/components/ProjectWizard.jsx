@@ -781,8 +781,8 @@ export default function ProjectWizard({
                       {sectMeta.params.map(p => {
                         const paramValue = parameters[sectId]?.[p.name] !== undefined ? parameters[sectId][p.name] : 0;
                         return (
-                          <div key={p.name} className="form-group" style={{ margin: 0, minWidth: '180px', flex: '1 1 200px', maxWidth: '300px' }}>
-                            <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>{p.label} *</label>
+                          <div key={p.name} className="form-group" style={{ margin: 0, minWidth: '180px', flex: '1 1 200px', maxWidth: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>{p.label}</label>
                             <input 
                               type="number" 
                               className="form-control" 

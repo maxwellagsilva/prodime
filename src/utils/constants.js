@@ -4,63 +4,63 @@ export const SECTORS_METADATA = [
     id: "UTI Adulto", 
     name: "UTI Adulto", 
     desc: "Unidade de Terapia Intensiva Adulto", 
-    params: [{ name: "leitos", label: "Número de Leitos de UTI Adulto" }] 
+    params: [{ name: "leitos", label: "Leitos" }] 
   },
   { 
     id: "UTI Neonatal", 
     name: "UTI Neonatal", 
     desc: "Unidade de Terapia Intensiva Neonatal", 
-    params: [{ name: "leitos", label: "Número de Leitos de UTI Neonatal" }] 
+    params: [{ name: "leitos", label: "Leitos" }] 
   },
   { 
     id: "UTI Pediátrica", 
     name: "UTI Pediátrica", 
     desc: "Unidade de Terapia Intensiva Pediátrica", 
-    params: [{ name: "leitos", label: "Número de Leitos de UTI Pediátrica" }] 
+    params: [{ name: "leitos", label: "Leitos" }] 
   },
   { 
     id: "Centro Cirúrgico", 
     name: "Centro Cirúrgico", 
     desc: "Salas cirúrgicas de alta/média complexidade", 
     params: [
-      { name: "salas_cirurgicas", label: "Número de Salas Cirúrgicas" }, 
-      { name: "salas_recuperacao", label: "Número de Leitos de Recuperação (RPA)" }
+      { name: "salas_cirurgicas", label: "Salas Cirúrgicas" }, 
+      { name: "salas_recuperacao", label: "Leitos de Recuperação (RPA)" }
     ] 
   },
   { 
     id: "Centro Obstetrico", 
     name: "Centro Obstétrico", 
     desc: "Salas de parto e assistência obstétrica", 
-    params: [{ name: "salas_parto", label: "Número de Salas de Parto" }] 
+    params: [{ name: "salas_parto", label: "Salas de Parto" }] 
   },
   { 
     id: "Pronto-Socorro", 
     name: "Pronto-Socorro", 
     desc: "Serviço de urgência/emergência e triagem", 
-    params: [{ name: "boxes_emergencia", label: "Número de Boxes de Emergência" }] 
+    params: [{ name: "boxes_emergencia", label: "Boxes de Emergência" }] 
   },
   { 
     id: "Internação", 
     name: "Unidade de Internação", 
     desc: "Acomodações e leitos gerais de enfermaria", 
-    params: [{ name: "leitos", label: "Número de Leitos de Internação" }] 
+    params: [{ name: "leitos", label: "Leitos" }] 
   },
   { 
     id: "CME", 
     name: "CME", 
     desc: "Central de Material e Esterilização", 
-    params: [{ name: "salas", label: "Número de Salas CME" }] 
+    params: [{ name: "salas", label: "Salas CME" }] 
   },
   { 
     id: "Diagnóstico por Imagem", 
     name: "Diagnóstico por Imagem", 
     desc: "Salas de RX, TC, RM, Ultrassom e Mamografia", 
     params: [
-      { name: "salas_rx", label: "Número de Salas de Raio-X (RX)" },
-      { name: "salas_tc", label: "Número de Salas de Tomografia (CT)" },
-      { name: "salas_rm", label: "Número de Salas de Ressonância (MR)" },
-      { name: "salas_usg", label: "Número de Salas de Ultrassom (USG)" },
-      { name: "salas_mamografia", label: "Número de Salas de Mamografia" }
+      { name: "salas_rx", label: "Raio-X (RX)" },
+      { name: "salas_tc", label: "Tomografia (CT)" },
+      { name: "salas_rm", label: "Ressonância (MR)" },
+      { name: "salas_usg", label: "Ultrassom (USG)" },
+      { name: "salas_mamografia", label: "Mamografia" }
     ] 
   }
 ];
