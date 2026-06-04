@@ -941,6 +941,7 @@ export default function App() {
                 <ProjectWizard 
                   project={editingProject}
                   initialStep={editingProjectStep}
+                  hasProjects={projects.length > 0}
                   onStepChange={setCurrentWizardStep}
                   equipment={equipment}
                   rules={rules}

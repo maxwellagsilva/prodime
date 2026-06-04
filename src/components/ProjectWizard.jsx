@@ -23,6 +23,7 @@ import { calculateProjectSizing } from '../utils/sizingEngine';
 export default function ProjectWizard({ 
   project,
   initialStep,
+  hasProjects = false,
   onStepChange,
   equipment = [], 
   rules = [], 
@@ -31,9 +32,9 @@ export default function ProjectWizard({
   onSave, 
   onCancel 
 }) {
-  // If editing an existing project, start at step 1 (or initialStep if provided). If creating a new one, start at step 0 (welcome screen)
+  // If editing an existing project, start at step 1 (or initialStep if provided). If creating a new one, start at step 0 (welcome screen) unless they already have projects.
   const isExisting = !!project;
-  const initial = initialStep !== undefined && initialStep !== null ? initialStep : (isExisting ? 1 : 0);
+  const initial = initialStep !== undefined && initialStep !== null ? initialStep : (isExisting ? 1 : (hasProjects ? 1 : 0));
   const [step, setStep] = useState(initial);
   
   // Track the furthest step reached to allow clicking back/forward in the stepper
@@ -126,10 +127,10 @@ export default function ProjectWizard({
       setSelectedSectors([]);
       setParameters({});
       setResults([]);
-      setStep(0);
+      setStep(hasProjects ? 1 : 0);
       setHighestStep(1);
     }
-  }, [project, initialStep]);
+  }, [project, initialStep, hasProjects]);
 
   const isSectorCompatible = (sectorId) => {
     if (!sectorCompatibility || sectorCompatibility.length === 0) return true;
