@@ -11,7 +11,9 @@ import {
   ClipboardList,
   Shield,
   HelpCircle,
-  FolderOpen
+  FolderOpen,
+  Activity,
+  Layers
 } from 'lucide-react';
 
 export default function Dashboard({ 
@@ -40,7 +42,26 @@ export default function Dashboard({
   const hasProjects = projects && projects.length > 0;
   const isAdmin = userProfile?.role === 'Admin';
 
-  // State A: Empty State (0 Projects) - Onboarding Flow
+  // Calculate new metrics
+  const establishmentCounts = {};
+  let totalSectorsAnalyzed = 0;
+  
+  projects.forEach(p => {
+    const t = p.establishment_type || 'Outros';
+    establishmentCounts[t] = (establishmentCounts[t] || 0) + 1;
+    if (p.sectors) {
+      totalSectorsAnalyzed += p.sectors.length;
+    }
+  });
+  
+  let topEstablishment = { name: '-', count: 0, pct: 0 };
+  if (projects.length > 0) {
+    for (const [name, count] of Object.entries(establishmentCounts)) {
+      if (count > topEstablishment.count) {
+        topEstablishment = { name, count, pct: Math.round((count / projects.length) * 100) };
+      }
+    }
+  }
   if (!hasProjects) {
     return (
       <div className="tab-section active">
@@ -109,7 +130,7 @@ export default function Dashboard({
       </div>
       
       {/* Statistics Grid */}
-      <div className="dashboard-grid" style={{ '--cols-count': isAdmin ? 4 : 2 }}>
+      <div className="dashboard-grid" style={{ '--cols-count': 4 }}>
         <div className="card-premium stats-card stat-projects" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
           <div className="stats-icon-wrapper" style={{ width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eef2ff', color: '#4f46e5' }}>
             <FileText size={24} />
@@ -126,34 +147,29 @@ export default function Dashboard({
           </div>
           <div className="stats-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stats-value" style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--secondary)' }}>{formatBRL(stats.totalInvestment || 0)}</span>
-            <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Investimento Total</span>
+            <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Investimento Total Estimado</span>
           </div>
         </div>
 
-        {/* System Stats - Admin Only */}
-        {isAdmin && (
-          <>
-            <div className="card-premium stats-card stat-eq" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
-              <div className="stats-icon-wrapper" style={{ width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff7ed', color: '#ea580c' }}>
-                <Settings size={24} />
-              </div>
-              <div className="stats-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="stats-value" style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--secondary)' }}>{stats.totalEquipment || 0}</span>
-                <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Equipamentos no Catálogo</span>
-              </div>
-            </div>
-            
-            <div className="card-premium stats-card stat-rules" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
-              <div className="stats-icon-wrapper" style={{ width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fdf2f8', color: '#db2777' }}>
-                <Sliders size={24} />
-              </div>
-              <div className="stats-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="stats-value" style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--secondary)' }}>{stats.totalRules || 0}</span>
-                <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Regras de Cálculo</span>
-              </div>
-            </div>
-          </>
-        )}
+        <div className="card-premium stats-card stat-eq" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
+          <div className="stats-icon-wrapper" style={{ width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff7ed', color: '#ea580c' }}>
+            <Activity size={24} />
+          </div>
+          <div className="stats-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stats-value" style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--secondary)' }}>{topEstablishment.pct}%</span>
+            <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Perfil: {topEstablishment.name}</span>
+          </div>
+        </div>
+        
+        <div className="card-premium stats-card stat-rules" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
+          <div className="stats-icon-wrapper" style={{ width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fdf2f8', color: '#db2777' }}>
+            <Layers size={24} />
+          </div>
+          <div className="stats-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stats-value" style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--secondary)' }}>{totalSectorsAnalyzed}</span>
+            <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Setores Analisados</span>
+          </div>
+        </div>
       </div>
       
       {/* Split Section */}
@@ -195,9 +211,6 @@ export default function Dashboard({
                       <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{formatBRL(projCost)}</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>custo estimado</span>
                     </div>
-                    <button className="btn btn-primary btn-sm" onClick={() => onOpenProject(proj)}>
-                      Abrir
-                    </button>
                   </div>
                 </div>
               );

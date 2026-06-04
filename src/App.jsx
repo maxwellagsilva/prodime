@@ -72,6 +72,8 @@ export default function App() {
 
   // Wizard active editing project
   const [editingProject, setEditingProject] = useState(null);
+  const [editingProjectStep, setEditingProjectStep] = useState(null);
+  const [currentWizardStep, setCurrentWizardStep] = useState(0);
 
   // Loading & Toast Notification
   const [loading, setLoading] = useState(false);
@@ -111,7 +113,7 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setUser(session.user);
-        fetchUserProfile(session.user);
+        fetchUserProfile(session.user, true);
         setView('app');
       } else {
         loadLocalProjects();
@@ -124,12 +126,16 @@ export default function App() {
         setAuthMode('reset');
         setAuthModalOpen(true);
       } else if (session) {
-        setUser(session.user);
-        fetchUserProfile(session.user);
+        // Only fetch profile and show toast if the user changed or it's a true login event
+        if (!user || user.id !== session.user.id || event === 'SIGNED_IN') {
+          setUser(session.user);
+          fetchUserProfile(session.user, event === 'SIGNED_IN');
+        }
         setView('app');
       } else {
         setUser(null);
         setProfile(null);
+        isInitialLoadRef.current = true;
         loadLocalProjects();
       }
     });
@@ -153,8 +159,11 @@ export default function App() {
     }
   }, [view]);
 
+  // Ref to track if it's initial load for toast
+  const isInitialLoadRef = React.useRef(true);
+
   // Fetch profiles table data
-  const fetchUserProfile = async (authUser) => {
+  const fetchUserProfile = async (authUser, isInitial = false) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -164,8 +173,11 @@ export default function App() {
       
       if (error) throw error;
       setProfile(data);
-      showToast(`Bem-vindo, ${data.name || authUser.email}!`, 'success');
-      loadCloudData(data);
+      if (isInitialLoadRef.current || isInitial) {
+        showToast(`Bem-vindo, ${data.name || authUser.email}!`, 'success');
+        isInitialLoadRef.current = false;
+        loadCloudData(data);
+      }
     } catch (err) {
       console.error('Error fetching user profile:', err);
       // Fallback profile if record creation trigger delays
@@ -177,7 +189,10 @@ export default function App() {
         active: true
       };
       setProfile(fallbackProfile);
-      loadCloudData(fallbackProfile);
+      if (isInitialLoadRef.current || isInitial) {
+        isInitialLoadRef.current = false;
+        loadCloudData(fallbackProfile);
+      }
     }
   };
 
@@ -202,7 +217,7 @@ export default function App() {
       if (rulesData && rulesData.length > 0) setRules(rulesData);
 
       // 3. Fetch User Projects
-      const { data: projData, error: projErr } = await supabase
+      let query = supabase
         .from('projects')
         .select(`
           *,
@@ -210,8 +225,14 @@ export default function App() {
           parameters:sector_parameters(*),
           results:project_equipment_results(*)
         `)
-        .eq('user_id', userProfile.id)
         .order('updated_at', { ascending: false });
+
+      // Admin sees all projects, users see only theirs
+      if (userProfile.role !== 'Admin') {
+        query = query.eq('user_id', userProfile.id);
+      }
+
+      const { data: projData, error: projErr } = await query;
       if (projErr) throw projErr;
       
       // Parse parameters structure
@@ -616,9 +637,16 @@ export default function App() {
           subtitle: "Visualize e gerencie os dimensionamentos salvos."
         };
       case 'project-wizard':
+        let subtitle = editingProject ? `Editando o projeto: ${editingProject.name}` : "Crie uma nova estimativa de equipamentos em poucos passos.";
+        if (currentWizardStep === 1) subtitle = "💡 Passo 1: Comece cadastrando as informações gerais do projeto. Você está a 4 passos do relatório final.";
+        else if (currentWizardStep === 2) subtitle = "💡 Passo 2: Selecione quais áreas fazem parte do projeto. Você está a 3 passos do relatório.";
+        else if (currentWizardStep === 3) subtitle = "💡 Passo 3: Informe os parâmetros de capacidade física ou operacional. Você está a 2 passos do relatório.";
+        else if (currentWizardStep === 4) subtitle = "💡 Passo 4: Revise a estimativa e faça ajustes justificados. Você está a 1 passo do relatório final!";
+        else if (currentWizardStep === 5) subtitle = "🎉 Passo 5: Relatório técnico-financeiro gerado com sucesso!";
+
         return {
           title: editingProject ? "Editar Projeto" : "Novo Projeto de Dimensionamento",
-          subtitle: editingProject ? `Editando o projeto: ${editingProject.name}` : "Crie uma nova estimativa de equipamentos em poucos passos."
+          subtitle: subtitle
         };
       case 'manual':
         return {
@@ -858,9 +886,15 @@ export default function App() {
                                 <td style={{ textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                                   <button 
                                     className="btn btn-secondary btn-sm"
-                                    onClick={() => { setEditingProject(proj); setTab('project-wizard'); }}
+                                    onClick={() => { setEditingProject(proj); setEditingProjectStep(null); setTab('project-wizard'); }}
                                   >
                                     Abrir
+                                  </button>
+                                  <button 
+                                    className="btn btn-primary btn-sm"
+                                    onClick={() => { setEditingProject(proj); setEditingProjectStep(5); setTab('project-wizard'); }}
+                                  >
+                                    Relatório
                                   </button>
                                   <button 
                                     className="btn btn-danger btn-sm"
@@ -896,12 +930,14 @@ export default function App() {
               {tab === 'project-wizard' && (
                 <ProjectWizard 
                   project={editingProject}
+                  initialStep={editingProjectStep}
+                  onStepChange={setCurrentWizardStep}
                   equipment={equipment}
                   rules={rules}
                   user={user}
                   sectorCompatibility={sectorCompatibility}
                   onSave={handleSaveProject}
-                  onCancel={() => { setEditingProject(null); setTab('projects'); }}
+                  onCancel={() => { setEditingProject(null); setTab('projects'); setEditingProjectStep(null); }}
                 />
               )}
 

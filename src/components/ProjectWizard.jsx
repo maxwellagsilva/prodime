@@ -21,7 +21,9 @@ import { SECTORS_METADATA } from '../utils/constants';
 import { calculateProjectSizing } from '../utils/sizingEngine';
 
 export default function ProjectWizard({ 
-  project, 
+  project,
+  initialStep,
+  onStepChange,
   equipment = [], 
   rules = [], 
   user = null,
@@ -29,8 +31,13 @@ export default function ProjectWizard({
   onSave, 
   onCancel 
 }) {
-  // If editing an existing project, start at step 1. If creating a new one, start at step 0 (welcome screen)
-  const [step, setStep] = useState(project ? 1 : 0);
+  // If editing an existing project, start at step 1 (or initialStep if provided). If creating a new one, start at step 0 (welcome screen)
+  const [step, setStep] = useState(initialStep !== undefined && initialStep !== null ? initialStep : (project ? 1 : 0));
+
+  useEffect(() => {
+    if (onStepChange) onStepChange(step);
+  }, [step, onStepChange]);
+
   
   // Step 1 States (Identification / Cadastro)
   const [name, setName] = useState('');
@@ -92,7 +99,11 @@ export default function ProjectWizard({
       if (project.results) {
         setResults(project.results);
       }
-      setStep(1);
+      if (initialStep !== undefined && initialStep !== null) {
+        setStep(initialStep);
+      } else {
+        setStep(1);
+      }
     } else {
       // Clear for new project
       setName('');
@@ -110,7 +121,7 @@ export default function ProjectWizard({
       setResults([]);
       setStep(0);
     }
-  }, [project]);
+  }, [project, initialStep]);
 
   const isSectorCompatible = (sectorId) => {
     if (!sectorCompatibility || sectorCompatibility.length === 0) return true;
@@ -508,22 +519,10 @@ export default function ProjectWizard({
 
       {/* HUMAN PROGRESS & STEPPER HEADER (Shown for steps > 0) */}
       {step > 0 && (
-        <>
-          <div className="page-actions no-print">
-            <button className="btn btn-secondary" onClick={onCancel}>Voltar para Lista</button>
-          </div>
-
-          {/* Human language progress notification */}
-          <div style={{ textAlign: 'center', marginBottom: '14px', fontSize: '0.88rem', color: 'var(--secondary-light)', fontWeight: 500 }} className="no-print">
-            {step === 1 && "💡 Passo 1: Comece cadastrando as informações gerais do projeto. Você está a 4 passos do relatório final."}
-            {step === 2 && "💡 Passo 2: Selecione quais áreas fazem parte do projeto. Você está a 3 passos do relatório."}
-            {step === 3 && "💡 Passo 3: Informe os parâmetros de capacidade física ou operacional. Você está a 2 passos do relatório."}
-            {step === 4 && "💡 Passo 4: Revise a estimativa e faça ajustes justificados. Você está a 1 passo do relatório final!"}
-            {step === 5 && "🎉 Passo 5: Relatório técnico-financeiro gerado com sucesso!"}
-          </div>
-
-          {/* Stepper Steps */}
-          <div className="wizard-steps no-print">
+        <div className="wizard-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <button className="btn btn-secondary btn-sm" onClick={onCancel} style={{ height: '36px' }}>Voltar</button>
+          
+          <div className="wizard-steps" style={{ margin: 0, padding: 0, border: 'none', backgroundColor: 'transparent', transform: 'scale(0.85)', transformOrigin: 'center' }}>
             {[
               { stepNum: 1, title: 'Cadastro' },
               { stepNum: 2, title: 'Ambientes' },
@@ -542,7 +541,9 @@ export default function ProjectWizard({
               </div>
             ))}
           </div>
-        </>
+          
+          <div style={{ width: '60px' }}></div> {/* Spacer for centering */}
+        </div>
       )}
 
       {/* STEP 1: IDENTIFICATION / CADASTRO */}
