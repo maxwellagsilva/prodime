@@ -242,6 +242,7 @@ body.app-active .app-container {
   max-width: 1400px;
   margin: 0 auto;
   align-items: center;
+  min-height: calc(100vh - 120px);
 }
 
 .lp-hero-content {
@@ -294,12 +295,13 @@ body.app-active .app-container {
 }
 
 .lp-hero-image-wrapper {
-  background: transparent;
-  padding: 0;
-  border: none;
-  box-shadow: none;
+  background: #ffffff;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
   max-height: 560px;
   overflow: hidden;
   display: flex;
@@ -309,10 +311,9 @@ body.app-active .app-container {
 
 .lp-hero-image {
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
   width: 100%;
   height: auto;
-  max-height: 540px;
+  max-height: 512px;
   object-fit: contain;
   display: block;
 }
@@ -2186,6 +2187,7 @@ textarea.form-control {
   .lp-hero {
     padding: 30px 40px !important;
     gap: 30px !important;
+    min-height: calc(100vh - 100px) !important;
   }
   .lp-hero-title {
     font-size: 2.3rem !important;
@@ -2196,12 +2198,15 @@ textarea.form-control {
     margin-bottom: 20px !important;
   }
   .lp-hero-image-wrapper {
-    max-width: 400px !important;
-    max-height: 485px !important;
-    padding: 0 !important;
+    max-width: 420px !important;
+    max-height: 480px !important;
+    padding: 16px !important;
+    background: #ffffff !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-lg) !important;
   }
   .lp-hero-image {
-    max-height: 465px !important;
+    max-height: 440px !important;
   }
 }
 
