@@ -527,8 +527,8 @@ export default function ProjectWizard({
 
       {/* HUMAN PROGRESS & STEPPER HEADER (Shown for steps > 0) */}
       {step > 0 && (
-        <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-          <div className="wizard-steps" style={{ margin: 0 }}>
+        <div className="no-print" style={{ display: 'flex', width: '100%', marginBottom: '24px' }}>
+          <div className="wizard-steps" style={{ margin: 0, width: '100%' }}>
             {[
               { stepNum: 1, title: 'Cadastro' },
               { stepNum: 2, title: 'Ambientes' },
