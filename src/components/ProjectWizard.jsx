@@ -103,7 +103,19 @@ export default function ProjectWizard({
 
       // Results
       if (project.results) {
-        setResults(project.results);
+        const enrichedResults = project.results.map(r => {
+          const eq = equipment.find(e => String(e.code) === String(r.equipment_code)) || {};
+          const rule = rules.find(ru => ru.sector === r.sector_name && String(ru.equipment_code) === String(r.equipment_code)) || {};
+          return {
+            ...r,
+            equipment_name: eq.name || r.equipment_name || 'Desconhecido',
+            category: eq.category || r.category || '',
+            avg_price: eq.avg_price || r.avg_price || 0,
+            classification: rule.classification || r.classification || 'Obrigatório',
+            normative_reference: rule.normative_reference || r.normative_reference || ''
+          };
+        });
+        setResults(enrichedResults);
       }
       if (initialStep !== undefined && initialStep !== null) {
         setStep(initialStep);
