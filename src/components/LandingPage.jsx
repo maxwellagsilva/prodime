@@ -113,8 +113,16 @@ export default function LandingPage({
           </div>
         </div>
         <div className="lp-hero-image-container">
-          <div className="lp-hero-image-wrapper">
-            <img src="/heroimage.png" alt="PRODIME Sizing Simulator Dashboard" className="lp-hero-image" style={{ width: '100%', maxWidth: '600px', height: 'auto', objectFit: 'contain' }} />
+          <div className="lp-hero-image-wrapper" style={{ width: '100%', maxWidth: '600px', overflow: 'hidden', borderRadius: 'var(--radius-lg)' }}>
+            <video 
+              src="/herovideo.mp4" 
+              className="lp-hero-image" 
+              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'var(--radius-md)', objectFit: 'contain' }} 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+            />
           </div>
         </div>
       </section>
