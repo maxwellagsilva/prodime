@@ -23,6 +23,7 @@ import Dashboard from './components/Dashboard';
 import ProjectWizard from './components/ProjectWizard';
 import Manual from './components/Manual';
 import AdminPanel from './components/AdminPanel';
+import HelpView from './components/HelpView';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfUse from './components/TermsOfUse';
 import { FALLBACK_EQUIPMENT, FALLBACK_RULES, FALLBACK_SECTOR_COMPATIBILITY } from './utils/constants';
@@ -628,6 +629,11 @@ export default function App() {
           title: "Configurações",
           subtitle: "Gerenciamento de regras de cálculo, catálogo de equipamentos e usuários."
         };
+      case 'help':
+        return {
+          title: "Ajuda & Suporte",
+          subtitle: "Instruções de uso do simulador PRODIME e canais de contato."
+        };
       default:
         return { title: "", subtitle: "" };
     }
@@ -696,7 +702,9 @@ export default function App() {
               <img src="/PRODIME.png" alt="PRODIME" style={{ height: '52px', width: 'auto', objectFit: 'contain' }} />
             </div>
             
-            <nav className="nav-menu">
+            {/* SECTION MENU */}
+            <div className="menu-section-title">MENU</div>
+            <nav className="nav-menu" style={{ flexGrow: 0, marginBottom: '16px' }}>
               <a 
                 className={`nav-item ${tab === 'dashboard' ? 'active' : ''}`}
                 onClick={() => { setTab('dashboard'); setMobileMenuOpen(false); }}
@@ -723,21 +731,48 @@ export default function App() {
               )}
             </nav>
             
-            {/* Bottom menu item (Configurações) */}
-            {profile?.role === 'Admin' && (
-              <div style={{ marginBottom: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+            {/* SECTION GENERAL */}
+            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="menu-section-title">GENERAL</div>
+              <nav className="nav-menu" style={{ flexGrow: 0 }}>
+                {profile?.role === 'Admin' && (
+                  <a 
+                    className={`nav-item ${tab === 'admin' ? 'active' : ''}`}
+                    onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}
+                  >
+                    <Settings size={20} className="nav-icon" />
+                    Configurações
+                  </a>
+                )}
                 <a 
-                  className={`nav-item ${tab === 'admin' ? 'active' : ''}`}
-                  onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}
+                  className={`nav-item ${tab === 'help' ? 'active' : ''}`}
+                  onClick={() => { setTab('help'); setMobileMenuOpen(false); }}
                 >
-                  <Settings size={20} className="nav-icon" />
-                  Configurações
+                  <HelpCircle size={20} className="nav-icon" />
+                  Ajuda
                 </a>
-              </div>
-            )}
+                {user ? (
+                  <a 
+                    className="nav-item"
+                    onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
+                  >
+                    <LogOut size={20} className="nav-icon" />
+                    Sair
+                  </a>
+                ) : (
+                  <a 
+                    className="nav-item"
+                    onClick={() => { setAuthMode('login'); setAuthModalOpen(true); setMobileMenuOpen(false); }}
+                  >
+                    <LogIn size={20} className="nav-icon" />
+                    Fazer Login
+                  </a>
+                )}
+              </nav>
+            </div>
             
             {/* User Profile Widget */}
-            <div className="user-widget">
+            <div className="user-widget" style={{ marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
               <div className="user-info">
                 <div className="user-avatar">
                   {profile?.name ? profile.name.substring(0, 2).toUpperCase() : (user?.email ? user.email.substring(0, 2).toUpperCase() : 'G')}
@@ -747,16 +782,6 @@ export default function App() {
                   <span className="user-role">{profile?.role || 'Guest (Local)'}</span>
                 </div>
               </div>
-              
-              {user ? (
-                <button className="btn btn-secondary btn-sm" onClick={handleSignOut} style={{ width: '100%' }}>
-                  <LogOut size={14} /> Sair
-                </button>
-              ) : (
-                <button className="btn btn-primary btn-sm" onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }} style={{ width: '100%' }}>
-                  <LogIn size={14} /> Fazer Login
-                </button>
-              )}
             </div>
           </aside>
           
@@ -775,18 +800,9 @@ export default function App() {
                   </div>
                   <div className="user-details">
                     <span className="user-name">{profile?.name || (user?.email ? user.email.split('@')[0] : 'Visitante')}</span>
-                    <span className="user-role">{profile?.role || 'Guest (Local)'}</span>
+                    <span className="user-role" style={{ textTransform: 'none' }}>{user?.email || 'Acesso Local'}</span>
                   </div>
                 </div>
-                {user ? (
-                  <button className="btn btn-secondary btn-sm" onClick={handleSignOut}>
-                    <LogOut size={14} /> Sair
-                  </button>
-                ) : (
-                  <button className="btn btn-primary btn-sm" onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}>
-                    <LogIn size={14} /> Fazer Login
-                  </button>
-                )}
               </div>
             </header>
 
@@ -888,7 +904,6 @@ export default function App() {
                 />
               )}
 
-              {/* TAB: MANUAL */}
               {tab === 'manual' && profile?.role === 'Admin' && <Manual />}
 
               {tab === 'admin' && profile?.role === 'Admin' && (
@@ -902,6 +917,9 @@ export default function App() {
                   onDeleteUser={handleDeleteUser}
                 />
               )}
+
+              {/* TAB: HELP (AJUDA) */}
+              {tab === 'help' && <HelpView />}
 
             </main>
           </div>
