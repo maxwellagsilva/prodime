@@ -300,21 +300,17 @@ body.app-active .app-container {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
-  width: 100%;
-  max-width: 500px;
-  max-height: 560px;
-  overflow: hidden;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  max-width: 100%;
 }
 
 .lp-hero-image {
   border-radius: var(--radius-md);
   width: 100%;
   height: auto;
-  max-height: 512px;
-  object-fit: contain;
+  max-width: 400px;
   display: block;
 }
 
@@ -2198,15 +2194,16 @@ textarea.form-control {
     margin-bottom: 20px !important;
   }
   .lp-hero-image-wrapper {
-    max-width: 420px !important;
-    max-height: 480px !important;
+    max-width: 100% !important;
     padding: 16px !important;
     background: #ffffff !important;
     border: 1px solid var(--border-color) !important;
     box-shadow: var(--shadow-lg) !important;
+    display: inline-flex !important;
   }
   .lp-hero-image {
-    max-height: 440px !important;
+    max-width: 340px !important;
+    height: auto !important;
   }
 }
 
