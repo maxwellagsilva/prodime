@@ -1699,6 +1699,32 @@ textarea.form-control {
     gap: 16px;
     padding: 16px !important;
   }
+  .wizard-steps {
+    padding: 12px 16px;
+    justify-content: space-around;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .step-indicator {
+    gap: 0;
+  }
+  .step-indicator span {
+    display: none;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .col-span-2 {
+    grid-column: span 1;
+  }
+  .col-span-3 {
+    grid-column: span 1;
+  }
 }
 
 .mobile-sidebar-overlay {
