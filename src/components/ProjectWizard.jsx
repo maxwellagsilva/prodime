@@ -777,20 +777,21 @@ export default function ProjectWizard({
                     flexShrink: 0
                   }}>
                     <div className="parameter-section-title" style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '10px', fontFamily: 'var(--font-display)', fontSize: '1rem', letterSpacing: '-0.25px' }}>{sectMeta.name}</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
                       {sectMeta.params.map(p => {
                         const paramValue = parameters[sectId]?.[p.name] !== undefined ? parameters[sectId][p.name] : 0;
                         return (
-                          <div key={p.name} className="form-group" style={{ margin: 0, minWidth: '180px', flex: '1 1 200px', maxWidth: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                            <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>{p.label}</label>
+                          <div key={p.name} className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
                             <input 
                               type="number" 
                               className="form-control" 
+                              style={{ width: '70px', margin: 0, textAlign: 'center' }}
                               value={paramValue} 
                               min="0"
                               onChange={e => handleParamChange(sectId, p.name, e.target.value)}
                               required 
                             />
+                            <label className="form-label" style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>{p.label}</label>
                           </div>
                         );
                       })}
