@@ -519,30 +519,32 @@ export default function ProjectWizard({
 
       {/* HUMAN PROGRESS & STEPPER HEADER (Shown for steps > 0) */}
       {step > 0 && (
-        <div className="wizard-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <button className="btn btn-secondary btn-sm" onClick={onCancel} style={{ height: '36px' }}>Voltar</button>
+        <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
+          <button className="btn btn-secondary btn-sm" onClick={onCancel} style={{ whiteSpace: 'nowrap' }}>
+            <ArrowLeft size={16} style={{ marginRight: '6px' }} /> Voltar
+          </button>
           
-          <div className="wizard-steps" style={{ margin: 0, padding: 0, border: 'none', backgroundColor: 'transparent', transform: 'scale(0.85)', transformOrigin: 'center' }}>
-            {[
-              { stepNum: 1, title: 'Cadastro' },
-              { stepNum: 2, title: 'Ambientes' },
-              { stepNum: 3, title: 'Parâmetros' },
-              { stepNum: 4, title: 'Ajustes' },
-              { stepNum: 5, title: 'Relatório' }
-            ].map((s) => (
-              <div 
-                key={s.stepNum} 
-                className={`step-indicator ${step === s.stepNum ? 'active' : ''} ${step > s.stepNum ? 'completed' : ''}`}
-              >
-                <div className="step-number">
-                  {step > s.stepNum ? <Check size={16} /> : s.stepNum}
+          <div style={{ flex: 1 }}>
+            <div className="wizard-steps" style={{ margin: 0 }}>
+              {[
+                { stepNum: 1, title: 'Cadastro' },
+                { stepNum: 2, title: 'Ambientes' },
+                { stepNum: 3, title: 'Parâmetros' },
+                { stepNum: 4, title: 'Ajustes' },
+                { stepNum: 5, title: 'Relatório' }
+              ].map((s) => (
+                <div 
+                  key={s.stepNum} 
+                  className={`step-indicator ${step === s.stepNum ? 'active' : ''} ${step > s.stepNum ? 'completed' : ''}`}
+                >
+                  <div className="step-number">
+                    {step > s.stepNum ? <Check size={16} /> : s.stepNum}
+                  </div>
+                  <span style={{ whiteSpace: 'nowrap' }}>{s.title}</span>
                 </div>
-                <span>{s.title}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-          
-          <div style={{ width: '60px' }}></div> {/* Spacer for centering */}
         </div>
       )}
 
