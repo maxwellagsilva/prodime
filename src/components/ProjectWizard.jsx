@@ -754,14 +754,14 @@ export default function ProjectWizard({
               {selectedSectors.map(sectId => {
                 const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
                 return (
-                  <div key={sectId} className="parameter-section-card" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-panel)' }}>
-                    <div className="parameter-section-title" style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '16px', fontFamily: 'var(--font-display)', fontSize: '1.05rem', letterSpacing: '-0.25px' }}>{sectMeta.name}</div>
-                    <div className="wizard-parameters-grid">
+                  <div key={sectId} className="parameter-section-card" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '14px 18px', backgroundColor: 'var(--bg-panel)' }}>
+                    <div className="parameter-section-title" style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '10px', fontFamily: 'var(--font-display)', fontSize: '1rem', letterSpacing: '-0.25px' }}>{sectMeta.name}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                       {sectMeta.params.map(p => {
                         const paramValue = parameters[sectId]?.[p.name] !== undefined ? parameters[sectId][p.name] : 0;
                         return (
-                          <div key={p.name} className="form-group" style={{ margin: 0 }}>
-                            <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600 }}>{p.label} *</label>
+                          <div key={p.name} className="form-group" style={{ margin: 0, minWidth: '180px', flex: '1 1 200px', maxWidth: '300px' }}>
+                            <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>{p.label} *</label>
                             <input 
                               type="number" 
                               className="form-control" 
