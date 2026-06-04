@@ -570,7 +570,7 @@ export default function ProjectWizard({
             </p>
             <form onSubmit={(e) => { e.preventDefault(); setHighestStep(Math.max(highestStep, 2)); setStep(2); }}>
               <div className="form-grid">
-                <div className="form-group col-span-2">
+                <div className="form-group">
                   <label className="form-label">Nome do Projeto *</label>
                   <input 
                     type="text" 
@@ -581,7 +581,7 @@ export default function ProjectWizard({
                     required 
                   />
                 </div>
-                <div className="form-group col-span-2">
+                <div className="form-group">
                   <label className="form-label">Nome da Unidade de Saúde / Estabelecimento *</label>
                   <input 
                     type="text" 
