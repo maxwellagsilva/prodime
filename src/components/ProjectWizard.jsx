@@ -900,9 +900,7 @@ export default function ProjectWizard({
               <thead>
                 <tr>
                   <th>Ambiente / Área</th>
-                  <th>Código</th>
                   <th>Equipamento</th>
-                  <th>Categoria</th>
                   <th style={{ textAlign: 'center' }}>Qtd. Calc</th>
                   <th style={{ textAlign: 'center' }}>Qtd. Sugerida</th>
                   <th style={{ textAlign: 'center' }}>Qtd. Ajustada</th>
@@ -927,9 +925,7 @@ export default function ProjectWizard({
                     return (
                       <tr key={idx}>
                         <td style={{ fontWeight: 600 }}>{r.sector_name}</td>
-                        <td><code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>{r.equipment_code}</code></td>
                         <td style={{ fontWeight: 500 }}>{r.equipment_name}</td>
-                        <td>{r.category}</td>
                         <td style={{ textAlign: 'center' }}>{r.quantity_calculated}</td>
                         <td style={{ textAlign: 'center', fontWeight: 600 }}>{r.quantity_recommended}</td>
                         <td style={{ textAlign: 'center' }}>
@@ -1100,7 +1096,6 @@ export default function ProjectWizard({
                 <thead>
                   <tr>
                     <th>Ambiente / Área</th>
-                    <th>Código</th>
                     <th>Equipamento</th>
                     <th style={{ textAlign: 'center' }}>Qtd Sugerida</th>
                     <th style={{ textAlign: 'center' }}>Qtd Final</th>
@@ -1116,7 +1111,6 @@ export default function ProjectWizard({
                     return (
                       <tr key={idx}>
                         <td style={{ fontWeight: 600 }}>{r.sector_name}</td>
-                        <td><code>{r.equipment_code}</code></td>
                         <td>{r.equipment_name}</td>
                         <td style={{ textAlign: 'center' }}>{r.quantity_recommended}</td>
                         <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{finalQty}</td>
