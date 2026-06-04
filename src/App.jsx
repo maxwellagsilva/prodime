@@ -14,7 +14,8 @@ import {
   X,
   User,
   Plus,
-  Shield
+  Shield,
+  HelpCircle
 } from 'lucide-react';
 
 import supabase from './supabaseClient';
