@@ -977,7 +977,7 @@ export default function App() {
                 
                 {(authMode === 'login' || authMode === 'signup' || authMode === 'forgot') && (
                   <div className="form-group">
-                    <label className="form-label">E-mail Corporativo ou Pessoal *</label>
+                    <label className="form-label">E-mail *</label>
                     <input 
                       type="email" 
                       className="form-control" 
