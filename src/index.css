@@ -1010,6 +1010,49 @@ body.app-active .app-container {
   gap: 20px;
 }
 
+.wizard-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.wizard-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.wizard-action-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.wizard-nav-row {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wizard-nav-row-end {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.wizard-modal-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 /* Landing Page Mobile Menu Styling */
 .lp-menu-toggle {
   display: none;
@@ -1724,6 +1767,60 @@ textarea.form-control {
   }
   .col-span-3 {
     grid-column: span 1;
+  }
+  .card-premium {
+    padding: 16px;
+  }
+  .card-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .wizard-action-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .wizard-action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .wizard-action-buttons .btn {
+    width: 100%;
+  }
+  .wizard-action-filters {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .wizard-action-filters .form-control {
+    width: 100% !important;
+    margin: 0;
+  }
+  .wizard-nav-row {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .wizard-nav-row .btn {
+    width: 100%;
+  }
+  .wizard-nav-row-end {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .wizard-nav-row-end .btn {
+    width: 100%;
+  }
+  .wizard-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .wizard-modal-actions .btn {
+    width: 100%;
   }
 }
 

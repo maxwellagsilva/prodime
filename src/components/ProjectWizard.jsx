@@ -639,7 +639,7 @@ export default function ProjectWizard({
               </div>
 
 
-              <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+              <div className="wizard-nav-row-end">
                 <button type="submit" className="btn btn-primary">
                   Avançar para seleção de áreas <ArrowRight size={16} />
                 </button>
@@ -702,7 +702,7 @@ export default function ProjectWizard({
               })}
             </div>
 
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+            <div className="wizard-nav-row">
               <button className="btn btn-secondary" onClick={() => setStep(1)}>
                 <ArrowLeft size={16} /> Voltar
               </button>
@@ -765,7 +765,7 @@ export default function ProjectWizard({
               })}
             </div>
 
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+            <div className="wizard-nav-row">
               <button className="btn btn-secondary" onClick={() => setStep(2)}>
                 <ArrowLeft size={16} /> Voltar
               </button>
@@ -812,8 +812,8 @@ export default function ProjectWizard({
           </div>
 
           {/* Action Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
-            <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="wizard-action-row">
+            <div className="wizard-action-buttons">
               <button className="btn btn-primary" onClick={() => setStep(5)}>
                 Gerar Relatório
               </button>
@@ -827,7 +827,7 @@ export default function ProjectWizard({
                 Salvar Projeto
               </button>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="wizard-action-filters">
               <select 
                 className="form-control" 
                 value={filterSector} 
@@ -935,7 +935,7 @@ export default function ProjectWizard({
             </table>
           </div>
 
-          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+          <div className="wizard-nav-row">
             <button className="btn btn-secondary" onClick={() => setStep(3)}>
               <ArrowLeft size={16} /> Voltar
             </button>
@@ -1103,7 +1103,7 @@ export default function ProjectWizard({
             </div>
           </div>
 
-          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }} className="no-print">
+          <div className="wizard-nav-row no-print">
             <button className="btn btn-secondary" onClick={() => setStep(4)}>
               <ArrowLeft size={16} /> Voltar aos Ajustes
             </button>
@@ -1158,7 +1158,7 @@ export default function ProjectWizard({
                 </div>
               </div>
 
-              <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <div className="wizard-modal-actions">
                 <button type="button" className="btn btn-secondary" onClick={() => setAdjustModalOpen(false)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary">Salvar Ajuste</button>
               </div>
