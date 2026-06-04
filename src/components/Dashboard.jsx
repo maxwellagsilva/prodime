@@ -63,7 +63,7 @@ export default function Dashboard({
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--secondary)', marginBottom: '16px', textAlign: 'center', fontWeight: 800, letterSpacing: '-0.25px' }}>
             Como funciona em 3 etapas simples:
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <div className="onboarding-steps-grid">
             <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', alignItems: 'flex-start' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.95rem' }}>
                 1
@@ -109,7 +109,7 @@ export default function Dashboard({
       </div>
       
       {/* Statistics Grid */}
-      <div className="dashboard-grid" style={{ display: 'grid', gap: '24px', gridTemplateColumns: isAdmin ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)' }}>
+      <div className="dashboard-grid" style={{ '--cols-count': isAdmin ? 4 : 2 }}>
         <div className="card-premium stats-card stat-projects" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
           <div className="stats-icon-wrapper" style={{ width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eef2ff', color: '#4f46e5' }}>
             <FileText size={24} />
@@ -157,7 +157,7 @@ export default function Dashboard({
       </div>
       
       {/* Split Section */}
-      <div className="dashboard-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '24px', marginTop: '8px' }}>
+      <div className="dashboard-split" style={{ marginTop: '8px' }}>
         
         {/* Recent Estimations List */}
         <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

@@ -12,7 +12,7 @@ import {
 
 export default function HelpView() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.1fr', gap: '20px', alignItems: 'start' }} className="wizard-layout-grid">
+    <div className="wizard-layout-grid">
       {/* Left Column: Documentation / Steps */}
       <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px' }}>
         <div>

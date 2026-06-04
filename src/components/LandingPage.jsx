@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Shield, 
   ArrowRight,
@@ -10,7 +10,9 @@ import {
   ClipboardList,
   FileCheck,
   TrendingUp,
-  FileText
+  FileText,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function LandingPage({ 
@@ -20,6 +22,8 @@ export default function LandingPage({
   onViewPrivacy,
   onViewTerms
 }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="lp-container">
       {/* Landing Page Header */}
@@ -27,6 +31,8 @@ export default function LandingPage({
         <div className="lp-brand" style={{ cursor: 'pointer' }} onClick={() => onStartApp()}>
           <img src="/PRODIME.png" alt="PRODIME" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
         </div>
+        
+        {/* Desktop Nav */}
         <nav className="lp-nav">
           <a href="#o-que-faz" className="lp-nav-link">O que faz</a>
           <a href="#como-funciona" className="lp-nav-link">Como funciona</a>
@@ -45,6 +51,34 @@ export default function LandingPage({
             </>
           )}
         </nav>
+
+        {/* Mobile Menu Toggle */}
+        <button className="lp-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        {/* Mobile Menu Drawer */}
+        <div className={`lp-mobile-menu ${mobileMenuOpen ? 'active' : ''}`}>
+          <a href="#o-que-faz" className="lp-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>O que faz</a>
+          <a href="#como-funciona" className="lp-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Como funciona</a>
+          <a href="#seguranca-dados" className="lp-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>Segurança dos dados</a>
+          <a onClick={() => { onViewTerms(); setMobileMenuOpen(false); }} className="lp-mobile-nav-link">Termos de uso</a>
+          {user ? (
+            <button className="btn btn-primary" style={{ width: '100%', marginTop: '12px' }} onClick={() => { onStartApp(); setMobileMenuOpen(false); }}>
+              Acessar Painel <ArrowRight size={16} />
+            </button>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', marginTop: '12px' }}>
+              <button className="btn btn-secondary" style={{ width: '100%' }} onClick={() => { onLoginClick(); setMobileMenuOpen(false); }}>
+                Entrar
+              </button>
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => { onStartApp(); setMobileMenuOpen(false); }}>
+                Criar estimativa
+              </button>
+            </div>
+          )}
+        </div>
+        {mobileMenuOpen && <div className="lp-mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)} />}
       </header>
 
       {/* Hero Section */}
@@ -80,7 +114,7 @@ export default function LandingPage({
         </div>
         <div className="lp-hero-image-container">
           <div className="lp-hero-image-wrapper">
-            <img src="/heroimage.png" alt="PRODIME Sizing Simulator Dashboard" className="lp-hero-image" style={{ width: '600px', height: 'auto', objectFit: 'contain' }} />
+            <img src="/heroimage.png" alt="PRODIME Sizing Simulator Dashboard" className="lp-hero-image" style={{ width: '100%', maxWidth: '600px', height: 'auto', objectFit: 'contain' }} />
           </div>
         </div>
       </section>
@@ -165,7 +199,7 @@ export default function LandingPage({
           <p className="lp-section-subtitle">O PRODIME conduz o usuário por um fluxo simples, estruturado para transformar dados da unidade em uma estimativa técnica e financeira.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '30px', textAlign: 'left', marginTop: '40px' }}>
+        <div className="lp-how-grid">
           {[
             { step: '1', title: 'Cadastro do projeto', desc: 'O usuário informa os dados gerais da estimativa, como nome do projeto, nome da unidade de saúde, responsável pelo preenchimento e observações relevantes. Essas informações ajudam a identificar o projeto e compor o relatório final.' },
             { step: '2', title: 'Perfil administrativo', desc: 'O usuário indica o perfil administrativo da unidade, como público, privado ou filantrópico. Essa informação ajuda a contextualizar a estimativa e pode ser útil para análises internas, planejamento orçamentário e organização documental.' },

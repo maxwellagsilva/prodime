@@ -22,7 +22,7 @@ export default function Manual() {
             Ao criar ou editar uma regra de dimensionamento clínico, cada campo define como o motor de regras calculará a recomendação dos equipamentos.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.88rem' }}>
+          <div className="manual-grid" style={{ fontSize: '0.88rem' }}>
             <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <strong style={{ color: 'var(--primary)' }}>Nome Descritivo da Regra:</strong>
               <p style={{ color: 'var(--secondary-light)', marginTop: '4px' }}>Padrão recomendado: [Setor] - [Equipamento] - [Finalidade]. Ex: UTI Adulto - Monitor Multiparamétrico.</p>

@@ -479,7 +479,7 @@ export default function ProjectWizard({
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--secondary)', fontWeight: 700, margin: 0 }}>
               O que você terá ao final:
             </h3>
-            <ul style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px', fontSize: '0.85rem', color: 'var(--secondary-light)', paddingLeft: '16px', margin: 0 }}>
+            <ul className="wizard-checklist-summary-list" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', paddingLeft: '16px', margin: 0 }}>
               <li>📋 Lista estimada de equipamentos por área selecionada</li>
               <li>📊 Quantidades sugeridas com base nas regras técnicas do sistema</li>
               <li>🏷️ Valores referenciais por item e por área</li>
@@ -547,7 +547,7 @@ export default function ProjectWizard({
 
       {/* STEP 1: IDENTIFICATION / CADASTRO */}
       {step === 1 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px', alignItems: 'start' }} className="wizard-layout-grid">
+        <div className="wizard-layout-grid">
           <div className="card-premium">
             <div className="card-header-flex">
               <h2 className="card-title">Passo 1: Identificação do Projeto</h2>
@@ -652,7 +652,7 @@ export default function ProjectWizard({
 
       {/* STEP 2: SECTORS / AMBIENTES SELECTION (Categorized) */}
       {step === 2 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px', alignItems: 'start' }} className="wizard-layout-grid">
+        <div className="wizard-layout-grid">
           <div className="card-premium">
             <div className="card-header-flex">
               <h2 className="card-title">Passo 2: Selecione as áreas que fazem parte da estimativa</h2>
@@ -673,7 +673,7 @@ export default function ProjectWizard({
                     <h3 style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: 'var(--primary)', marginBottom: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Layers size={16} /> {cat.title}
                     </h3>
-                    <div className="sectors-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="wizard-sectors-grid">
                       {cat.sectors.map((sect) => {
                         const isChecked = selectedSectors.includes(sect.id);
                         return (
@@ -726,7 +726,7 @@ export default function ProjectWizard({
 
       {/* STEP 3: SECTOR PARAMETERS */}
       {step === 3 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px', alignItems: 'start' }} className="wizard-layout-grid">
+        <div className="wizard-layout-grid">
           <div className="card-premium">
             <div className="card-header-flex">
               <h2 className="card-title">Passo 3: Preenchimento dos Parâmetros</h2>
@@ -742,7 +742,7 @@ export default function ProjectWizard({
                 return (
                   <div key={sectId} className="parameter-section-card" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-panel)' }}>
                     <div className="parameter-section-title" style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '16px', fontFamily: 'var(--font-display)', fontSize: '1.05rem', letterSpacing: '-0.25px' }}>{sectMeta.name}</div>
-                    <div className="parameter-inputs-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="wizard-parameters-grid">
                       {sectMeta.params.map(p => {
                         const paramValue = parameters[sectId]?.[p.name] !== undefined ? parameters[sectId][p.name] : 0;
                         return (
@@ -790,7 +790,7 @@ export default function ProjectWizard({
           </p>
 
           {/* Executive Summary Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+          <div className="wizard-stats-grid" style={{ marginBottom: '24px' }}>
             <div style={{ border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', textAlign: 'center', backgroundColor: 'var(--bg-panel)' }}>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{selectedSectors.length}</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Áreas Analisadas</div>
@@ -984,7 +984,7 @@ export default function ProjectWizard({
             </div>
 
             {/* Project Details Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px', backgroundColor: 'var(--bg-panel)', padding: '24px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+            <div className="wizard-summary-details-grid" style={{ backgroundColor: 'var(--bg-panel)', padding: '24px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', marginBottom: '30px' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Projeto</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{name}</div>
@@ -1012,7 +1012,7 @@ export default function ProjectWizard({
             </div>
 
             {/* Overview Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+            <div className="wizard-stats-grid" style={{ marginBottom: '30px' }}>
               <div style={{ textAlign: 'center', border: '1px solid var(--border-color)', padding: '20px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-panel)' }}>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{selectedSectors.length}</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginTop: '4px', fontWeight: 500 }}>Ambientes Selecionados</div>

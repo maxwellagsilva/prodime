@@ -948,8 +948,125 @@ body.app-active .app-container {
 /* Dashboard Statistics Grid */
 .dashboard-grid {
   display: grid;
+  grid-template-columns: repeat(var(--cols-count, 4), 1fr);
+  gap: 20px;
+}
+
+/* Wizard & Layout responsive classes */
+.wizard-layout-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.onboarding-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.lp-how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  text-align: left;
+  margin-top: 40px;
+}
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.wizard-checklist-summary-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 20px;
+}
+
+.wizard-sectors-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.wizard-parameters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.wizard-stats-grid {
+  display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
+}
+
+.wizard-summary-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Landing Page Mobile Menu Styling */
+.lp-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--secondary);
+  cursor: pointer;
+  z-index: 120;
+}
+
+.lp-mobile-menu {
+  display: none;
+  position: fixed;
+  top: 89px; /* lp-header height + padding */
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  z-index: 110;
+  flex-direction: column;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-color);
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.lp-mobile-menu.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lp-mobile-nav-link {
+  font-size: 1.05rem;
+  color: var(--secondary-light);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+.lp-mobile-nav-link:last-of-type {
+  border-bottom: none;
+}
+
+.lp-mobile-menu-overlay {
+  position: fixed;
+  top: 89px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  z-index: 105;
 }
 
 .stats-card {
@@ -1490,6 +1607,15 @@ textarea.form-control {
   .dashboard-split {
     grid-template-columns: 1fr;
   }
+  .wizard-layout-grid {
+    grid-template-columns: 1fr;
+  }
+  .wizard-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .lp-how-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
@@ -1514,6 +1640,12 @@ textarea.form-control {
   .lp-nav {
     display: none; /* simple burger menu or hide */
   }
+  .lp-menu-toggle {
+    display: block;
+  }
+  .lp-mobile-menu {
+    display: flex;
+  }
   .lp-features-section {
     padding: 40px 20px;
   }
@@ -1536,6 +1668,36 @@ textarea.form-control {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+  }
+  .onboarding-steps-grid {
+    grid-template-columns: 1fr;
+  }
+  .lp-how-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .manual-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .wizard-checklist-summary-list {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .wizard-sectors-grid {
+    grid-template-columns: 1fr;
+  }
+  .wizard-parameters-grid {
+    grid-template-columns: 1fr;
+  }
+  .wizard-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .wizard-summary-details-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px !important;
   }
 }
 
