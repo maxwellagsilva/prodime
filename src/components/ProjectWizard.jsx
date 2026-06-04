@@ -750,11 +750,32 @@ export default function ProjectWizard({
               Informe os dados quantitativos solicitados para cada área selecionada. Esses parâmetros representam a capacidade física, assistencial ou operacional da unidade e serão aplicados nas regras técnicas para gerar a estimativa.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'stretch' }}>
               {selectedSectors.map(sectId => {
                 const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
+                const paramCount = sectMeta.params.length;
+                
+                let cardWidth = '100%';
+                let minW = '100%';
+                if (paramCount === 1) {
+                  cardWidth = 'calc((100% - 32px) / 3)';
+                  minW = '200px';
+                } else if (paramCount === 2) {
+                  cardWidth = 'calc(((100% - 32px) / 3) * 2 + 16px)';
+                  minW = '420px';
+                }
+
                 return (
-                  <div key={sectId} className="parameter-section-card" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '14px 18px', backgroundColor: 'var(--bg-panel)' }}>
+                  <div key={sectId} className="parameter-section-card" style={{ 
+                    border: '1px solid var(--border-color)', 
+                    borderRadius: 'var(--radius-md)', 
+                    padding: '14px 18px', 
+                    backgroundColor: 'var(--bg-panel)',
+                    width: cardWidth,
+                    minWidth: minW,
+                    flexGrow: 0,
+                    flexShrink: 0
+                  }}>
                     <div className="parameter-section-title" style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '10px', fontFamily: 'var(--font-display)', fontSize: '1rem', letterSpacing: '-0.25px' }}>{sectMeta.name}</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                       {sectMeta.params.map(p => {
