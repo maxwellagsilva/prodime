@@ -75,6 +75,9 @@ export default function App() {
   const [editingProjectStep, setEditingProjectStep] = useState(null);
   const [currentWizardStep, setCurrentWizardStep] = useState(0);
 
+  // Ref for auth state to avoid stale closure
+  const currentUserIdRef = React.useRef(null);
+
   // Loading & Toast Notification
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
@@ -112,10 +115,12 @@ export default function App() {
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        currentUserIdRef.current = session.user.id;
         setUser(session.user);
         fetchUserProfile(session.user, true);
         setView('app');
       } else {
+        currentUserIdRef.current = null;
         loadLocalProjects();
       }
     });
@@ -126,13 +131,18 @@ export default function App() {
         setAuthMode('reset');
         setAuthModalOpen(true);
       } else if (session) {
-        // Only fetch profile and show toast if the user changed or it's a true login event
-        if (!user || user.id !== session.user.id || event === 'SIGNED_IN') {
+        // Only fetch profile and show toast if the user changed
+        if (currentUserIdRef.current !== session.user.id) {
+          currentUserIdRef.current = session.user.id;
           setUser(session.user);
-          fetchUserProfile(session.user, event === 'SIGNED_IN');
+          fetchUserProfile(session.user, true);
+        } else {
+          // Token refresh or same user, just ensure state is up to date silently
+          setUser(session.user);
         }
         setView('app');
       } else {
+        currentUserIdRef.current = null;
         setUser(null);
         setProfile(null);
         isInitialLoadRef.current = true;

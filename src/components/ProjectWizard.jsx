@@ -32,7 +32,12 @@ export default function ProjectWizard({
   onCancel 
 }) {
   // If editing an existing project, start at step 1 (or initialStep if provided). If creating a new one, start at step 0 (welcome screen)
-  const [step, setStep] = useState(initialStep !== undefined && initialStep !== null ? initialStep : (project ? 1 : 0));
+  const isExisting = !!project;
+  const initial = initialStep !== undefined && initialStep !== null ? initialStep : (isExisting ? 1 : 0);
+  const [step, setStep] = useState(initial);
+  
+  // Track the furthest step reached to allow clicking back/forward in the stepper
+  const [highestStep, setHighestStep] = useState(isExisting || initial > 1 ? 5 : 1);
 
   useEffect(() => {
     if (onStepChange) onStepChange(step);
@@ -101,8 +106,10 @@ export default function ProjectWizard({
       }
       if (initialStep !== undefined && initialStep !== null) {
         setStep(initialStep);
+        setHighestStep(5);
       } else {
         setStep(1);
+        setHighestStep(5);
       }
     } else {
       // Clear for new project
@@ -120,6 +127,7 @@ export default function ProjectWizard({
       setParameters({});
       setResults([]);
       setStep(0);
+      setHighestStep(1);
     }
   }, [project, initialStep]);
 
@@ -519,31 +527,32 @@ export default function ProjectWizard({
 
       {/* HUMAN PROGRESS & STEPPER HEADER (Shown for steps > 0) */}
       {step > 0 && (
-        <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
-          <button className="btn btn-secondary btn-sm" onClick={onCancel} style={{ whiteSpace: 'nowrap' }}>
-            <ArrowLeft size={16} style={{ marginRight: '6px' }} /> Voltar
-          </button>
-          
-          <div style={{ flex: 1 }}>
-            <div className="wizard-steps" style={{ margin: 0 }}>
-              {[
-                { stepNum: 1, title: 'Cadastro' },
-                { stepNum: 2, title: 'Ambientes' },
-                { stepNum: 3, title: 'Parâmetros' },
-                { stepNum: 4, title: 'Ajustes' },
-                { stepNum: 5, title: 'Relatório' }
-              ].map((s) => (
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+          <div className="wizard-steps" style={{ margin: 0 }}>
+            {[
+              { stepNum: 1, title: 'Cadastro' },
+              { stepNum: 2, title: 'Ambientes' },
+              { stepNum: 3, title: 'Parâmetros' },
+              { stepNum: 4, title: 'Ajustes' },
+              { stepNum: 5, title: 'Relatório' }
+            ].map((s) => {
+              const isEnabled = s.stepNum <= highestStep;
+              return (
                 <div 
                   key={s.stepNum} 
+                  onClick={() => {
+                    if (isEnabled) setStep(s.stepNum);
+                  }}
+                  style={{ cursor: isEnabled ? 'pointer' : 'not-allowed', opacity: isEnabled ? 1 : 0.6 }}
                   className={`step-indicator ${step === s.stepNum ? 'active' : ''} ${step > s.stepNum ? 'completed' : ''}`}
                 >
-                  <div className="step-number">
+                  <div className="step-number" style={{ transition: 'all 0.2s ease' }}>
                     {step > s.stepNum ? <Check size={16} /> : s.stepNum}
                   </div>
                   <span style={{ whiteSpace: 'nowrap' }}>{s.title}</span>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -559,7 +568,7 @@ export default function ProjectWizard({
             <p style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
               <strong>Identifique a estimativa:</strong> Informe os dados básicos do projeto para organizar o relatório final. Essas informações ajudam a contextualizar a análise, mas não alteram as regras-base de dimensionamento do PRODIME.
             </p>
-            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
+            <form onSubmit={(e) => { e.preventDefault(); setHighestStep(Math.max(highestStep, 2)); setStep(2); }}>
               <div className="form-grid">
                 <div className="form-group col-span-2">
                   <label className="form-label">Nome do Projeto *</label>
@@ -716,6 +725,7 @@ export default function ProjectWizard({
                     alert('Selecione pelo menos um ambiente ou setor');
                     return;
                   }
+                  setHighestStep(Math.max(highestStep, 3));
                   setStep(3);
                 }}
               >
@@ -772,7 +782,10 @@ export default function ProjectWizard({
               <button className="btn btn-secondary" onClick={() => setStep(2)}>
                 <ArrowLeft size={16} /> Voltar
               </button>
-              <button className="btn btn-primary" onClick={runCalculation}>
+              <button className="btn btn-primary" onClick={() => {
+                setHighestStep(Math.max(highestStep, 4));
+                runCalculation();
+              }}>
                 Gerar estimativa <ArrowRight size={16} />
               </button>
             </div>
@@ -942,7 +955,7 @@ export default function ProjectWizard({
             <button className="btn btn-secondary" onClick={() => setStep(3)}>
               <ArrowLeft size={16} /> Voltar
             </button>
-            <button className="btn btn-primary" onClick={() => setStep(5)}>
+            <button className="btn btn-primary" onClick={() => { setHighestStep(Math.max(highestStep, 5)); setStep(5); }}>
               Avançar: Relatório <ArrowRight size={16} />
             </button>
           </div>
