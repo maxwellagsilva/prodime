@@ -689,7 +689,7 @@ export default function App() {
             <div className="lp-brand" onClick={() => setView('landing')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <img src="/PRODIME.png" alt="PRODIME" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
             </div>
-            <div style={{ width: '24px' }}></div>
+            <div style={{ width: '40px' }}></div>
           </header>
 
           <div 
