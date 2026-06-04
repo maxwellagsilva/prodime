@@ -80,55 +80,7 @@ export default function LandingPage({
         </div>
         <div className="lp-hero-image-container">
           <div className="lp-hero-image-wrapper">
-            <div style={{
-              backgroundColor: '#0f172a',
-              borderRadius: '8px',
-              padding: '24px',
-              width: '450px',
-              color: 'white',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-              fontFamily: 'Outfit, sans-serif'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '0.8rem', color: '#38bdf8', fontWeight: 600 }}>Estimativa do projeto</span>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></div>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></div>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dados informados:</span>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>Estrutura cadastrada pelo usuário</span>
-                </div>
-                <hr style={{ borderColor: '#1e293b', margin: '4px 0' }} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resultado gerado:</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.85rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: '#1e293b', padding: '6px 10px', borderRadius: '4px' }}>
-                      <span>✔️ Equipamentos estimados</span>
-                      <span style={{ color: '#38bdf8', fontWeight: 600 }}>Calculado</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: '#1e293b', padding: '6px 10px', borderRadius: '4px' }}>
-                      <span>📊 Quantidades sugeridas</span>
-                      <span style={{ color: '#38bdf8', fontWeight: 600 }}>Calculado</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: '#1e293b', padding: '6px 10px', borderRadius: '4px' }}>
-                      <span>🏷️ Valores referenciais</span>
-                      <span style={{ color: '#38bdf8', fontWeight: 600 }}>Calculado</span>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', borderTop: '1px solid #1e293b', paddingTop: '12px' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Investimento total estimado:</span>
-                  <span style={{ color: '#22c55e', fontWeight: 700, fontSize: '0.95rem' }}>Gerado no Relatório</span>
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', marginTop: '6px', fontStyle: 'italic' }}>
-                  Relatório técnico-financeiro para apoio ao planejamento
-                </div>
-              </div>
-            </div>
+            <img src="/heroimage.png" alt="PRODIME Sizing Simulator Dashboard" className="lp-hero-image" style={{ width: '600px', height: 'auto', objectFit: 'contain' }} />
           </div>
         </div>
       </section>

@@ -27,8 +27,20 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfUse from './components/TermsOfUse';
 import { FALLBACK_EQUIPMENT, FALLBACK_RULES, FALLBACK_SECTOR_COMPATIBILITY } from './utils/constants';
 
+const getInitialView = () => {
+  if (typeof window === 'undefined') return 'landing';
+  const hostname = window.location.hostname;
+  if (hostname.includes('app.prodime.com.br')) {
+    return 'app';
+  }
+  if (window.location.pathname.startsWith('/app')) {
+    return 'app';
+  }
+  return 'landing';
+};
+
 export default function App() {
-  const [view, setView] = useState('landing'); // 'landing' | 'app'
+  const [view, setView] = useState(getInitialView);
   const [tab, setTab] = useState('dashboard'); // 'dashboard' | 'projects' | 'project-wizard' | 'manual' | 'admin'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -85,8 +97,9 @@ export default function App() {
 
   // Monitor Supabase Auth state change
   useEffect(() => {
-    // Se o usuário acessar a rota /app diretamente, ativa a view do aplicativo
-    if (window.location.pathname.startsWith('/app')) {
+    const hostname = window.location.hostname;
+    // Se o usuário acessar a rota /app diretamente ou via subdomínio, ativa a view do aplicativo
+    if (hostname.includes('app.prodime.com.br') || window.location.pathname.startsWith('/app')) {
       setView('app');
     }
 
@@ -121,6 +134,22 @@ export default function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Handle production domain routing redirects
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.includes('.local');
+    
+    if (!isLocalhost) {
+      if (view === 'landing' && hostname.includes('app.prodime.com.br')) {
+        // Se estiver no subdomínio do app mas na landing page, redireciona para o site principal
+        window.location.href = 'https://prodime.com.br';
+      } else if (view === 'app' && !hostname.includes('app.prodime.com.br')) {
+        // Se estiver no site principal mas acessar o app, redireciona para o subdomínio do app
+        window.location.href = 'https://app.prodime.com.br';
+      }
+    }
+  }, [view]);
 
   // Fetch profiles table data
   const fetchUserProfile = async (authUser) => {
