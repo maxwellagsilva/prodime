@@ -191,11 +191,11 @@ export default function LandingPage({
             <Layers size={14} /> Planejamento inteligente de equipamentos em saúde
           </span>
           <h1 className="lp-hero-title" style={{ fontSize: '2.5rem', lineHeight: '1.25', margin: '16px 0' }}>
-            Dimensione equipamentos e planeje investimentos de saúde em minutos.
+            Dimensione o parque de equipamentos médicos do seu projeto em minutos.
           </h1>
           <div className="lp-hero-description" style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '1.02rem', lineHeight: '1.6', color: 'var(--secondary-light)', marginBottom: '24px' }}>
             <p>
-              O PRODIME auxilia gestores, engenheiros clínicos e equipes técnicas a estimar quantitativos de equipamentos médico-hospitalares e valores referenciais de investimento com agilidade e rigor técnico.
+              O PRODIME é um sistema que auxilia engenheiros clínicos e gestores da area da saúde a estimar quais equipamentos, as quantidades e qual o tamanho do investimento com agilidade e rigor técnico.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', color: 'var(--secondary)' }}>
