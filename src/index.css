@@ -81,11 +81,11 @@ body.app-active {
 }
 
 body.app-active .app-shell {
-  height: calc(100vh - 48px);
-  max-width: calc(100vw - 48px);
-  width: 1400px;
-  margin: 24px auto;
-  padding: 24px;
+  height: calc(100vh - 24px);
+  max-width: calc(100vw - 24px);
+  width: 100%;
+  margin: 12px auto;
+  padding: 16px;
   background-color: var(--bg-app); /* white background #ffffff */
   box-shadow: var(--shadow-lg);
   border-radius: var(--radius-xl); /* 32px rounded corners */
@@ -94,7 +94,7 @@ body.app-active .app-shell {
 
 body.app-active .app-container {
   display: flex;
-  gap: 24px;
+  gap: 16px;
   height: 100%;
   min-height: 0;
   width: 100%;
@@ -446,7 +446,7 @@ body.app-active .app-container {
   color: var(--secondary);
   display: flex;
   flex-direction: column;
-  padding: 32px 24px;
+  padding: 24px 16px;
   border-radius: var(--radius-lg); /* 24px */
   box-shadow: none;
   border: 1px solid var(--border-color);
@@ -569,7 +569,7 @@ body.app-active .app-container {
 .nav-item.active::before {
   content: '';
   position: absolute;
-  left: -24px; /* Align to the absolute left of sidebar container */
+  left: -16px; /* Align to the absolute left of sidebar container */
   top: 50%;
   transform: translateY(-50%);
   width: 6px;
@@ -646,7 +646,7 @@ body.app-active .app-container {
 .content-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   flex-grow: 1;
   height: 100%;
   min-height: 0;
@@ -654,12 +654,12 @@ body.app-active .app-container {
 }
 
 .app-header {
-  height: 80px;
+  height: 72px;
   background-color: var(--bg-panel);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   box-shadow: none;
-  padding: 0 24px;
+  padding: 0 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -748,10 +748,10 @@ body.app-active .app-container {
   flex-grow: 1;
   background-color: var(--bg-panel);
   border-radius: var(--radius-lg); /* 24px */
-  padding: 32px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 32px; /* Espaçamento generoso entre blocos: 32px */
+  gap: 20px; /* Espaçamento mais compacto entre blocos: 20px */
   min-width: 0;
   box-shadow: none;
   border: 1px solid var(--border-color);
@@ -915,7 +915,7 @@ body.app-active .app-container {
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-md);
   border-radius: var(--radius-lg); /* Cantos bem arredondados: 24px */
-  padding: 32px; /* Padding interno generoso: 32px */
+  padding: 24px; /* Padding interno mais compacto: 24px */
   transition: all 0.3s ease;
 }
 
