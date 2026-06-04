@@ -403,7 +403,7 @@ export default function ProjectWizard({
           <div>
             <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>Identificação do Projeto</span>
             <strong style={{ display: 'block', color: 'var(--secondary)', marginTop: '4px', fontSize: '0.92rem' }}>{name || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 'normal' }}>Não nomeado</span>}</strong>
-            {hospitalName && <span style={{ display: 'block', color: 'var(--secondary-light)', fontSize: '0.8rem', marginTop: '2px', fontWeight: 500 }}>{hospitalName} {city && `(${city}-${state})`}</span>}
+            {hospitalName && <span style={{ display: 'block', color: 'var(--secondary-light)', fontSize: '0.8rem', marginTop: '2px', fontWeight: 500 }}>{hospitalName}</span>}
           </div>
           
           <div>
@@ -953,7 +953,7 @@ export default function ProjectWizard({
       {/* STEP 5: FINAL REPORT & SUMMARY */}
       {step === 5 && (
         <div className="card-premium">
-          <div className="card-header-flex">
+          <div className="card-header-flex no-print">
             <h2 className="card-title">Passo 5: Emissão do Relatório Técnico-Financeiro</h2>
             <div className="no-print" style={{ display: 'flex', gap: '8px' }}>
               <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
@@ -993,10 +993,7 @@ export default function ProjectWizard({
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Unidade de Saúde</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{hospitalName}</div>
               </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Localidade</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{(city && state) ? `${city} - ${state}` : (city || state || '-')}</div>
-              </div>
+
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>Tipo de Unidade / Perfil</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary)', marginTop: '4px' }}>{establishmentType} ({profile})</div>

@@ -3,14 +3,13 @@ import { FileText, ArrowLeft } from 'lucide-react';
 
 export default function TermsOfUse({ onBack }) {
   return (
-    <div className="tab-section active">
+    <div className="legal-container">
       {onBack && (
         <button 
-          className="btn btn-secondary btn-sm no-print" 
+          className="btn-back-modern no-print" 
           onClick={onBack}
-          style={{ marginBottom: '20px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <ArrowLeft size={16} /> Voltar
+          <ArrowLeft size={18} /> Voltar para o início
         </button>
       )}
       
