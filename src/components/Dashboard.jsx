@@ -232,126 +232,83 @@ export default function Dashboard({
       </div>
       
       {/* Charts Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '24px' }}>
         {/* Bar Chart: Estabelecimento */}
-        <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '400px' }}>
+        <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '340px' }}>
           <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '20px' }}>
             <BarChart2 size={20} style={{ color: 'var(--primary)' }} /> Volume por Tipo de Estabelecimento
           </h2>
           <div style={{ flex: 1, minHeight: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartDataEstType} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                <XAxis type="number" allowDecimals={false} stroke="#64748b" fontSize={12} />
-                <YAxis dataKey="name" type="category" width={120} stroke="#64748b" fontSize={12} fontWeight={500} />
+              <BarChart data={chartDataEstType} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis type="number" allowDecimals={false} stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
                 <RechartsTooltip cursor={{fill: '#f1f5f9'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
-                <Bar dataKey="value" name="Projetos" fill="var(--primary)" radius={[0, 4, 4, 0]} barSize={24} />
+                <Bar dataKey="value" name="Projetos" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={32} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Donut Charts: Profile and Project Type */}
-        <div style={{ display: 'grid', gridTemplateRows: '1fr 1fr', gap: '24px' }}>
-          <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
-            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '10px' }}>
-              <PieChartIcon size={20} style={{ color: 'var(--primary)' }} /> Distribuição por Perfil Administrativo
-            </h2>
-            <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartDataProfile}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={65}
-                    paddingAngle={2}
-                    dataKey="value"
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                  >
-                    {chartDataProfile.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
-                  <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{fontSize: '12px'}} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
-            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '10px' }}>
-              <PieChartIcon size={20} style={{ color: 'var(--primary)' }} /> Distribuição por Tipo de Projeto
-            </h2>
-            <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartDataProjType}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={65}
-                    paddingAngle={2}
-                    dataKey="value"
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                  >
-                    {chartDataProjType.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
-                  <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{fontSize: '12px'}} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+        {/* Donut Charts: Profile */}
+        <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '340px' }}>
+          <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '10px' }}>
+            <PieChartIcon size={20} style={{ color: 'var(--primary)' }} /> Perfis Administrativos
+          </h2>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartDataProfile}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={2}
+                  dataKey="value"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                >
+                  {chartDataProfile.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
+                <Legend verticalAlign="bottom" align="center" layout="horizontal" iconType="circle" wrapperStyle={{fontSize: '12px', paddingTop: '16px'}} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      </div>
 
-      {/* Equipment Frequencies Table */}
-      <div className="card-premium" style={{ padding: '24px' }}>
-        <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '20px' }}>
-          <Activity size={20} style={{ color: 'var(--primary)' }} /> Top Equipamentos Mais Frequentes
-        </h2>
-        
-        <div className="table-wrapper">
-          <table className="table-premium" style={{ margin: 0 }}>
-            <thead>
-              <tr>
-                <th style={{ width: '60px', textAlign: 'center' }}>Pos.</th>
-                <th>Equipamento</th>
-                <th style={{ textAlign: 'center' }}>Projetos Presentes</th>
-                <th style={{ textAlign: 'right' }}>Valor Médio Referencial</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topEquipment.length > 0 ? (
-                topEquipment.map((eq, idx) => (
-                  <tr key={eq.code}>
-                    <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>{idx + 1}º</td>
-                    <td style={{ fontWeight: 500 }}>{eq.name}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
-                        {eq.count}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatBRL(eq.avgPrice)}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '40px', color: 'var(--secondary-light)' }}>
-                    Nenhum dado de equipamento disponível nas estimativas salvas.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {/* Donut Charts: Project Type */}
+        <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '340px' }}>
+          <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '10px' }}>
+            <PieChartIcon size={20} style={{ color: 'var(--primary)' }} /> Tipos de Projeto
+          </h2>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartDataProjType}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={2}
+                  dataKey="value"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                >
+                  {chartDataProjType.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
+                <Legend verticalAlign="bottom" align="center" layout="horizontal" iconType="circle" wrapperStyle={{fontSize: '12px', paddingTop: '16px'}} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
