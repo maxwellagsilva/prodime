@@ -13,8 +13,14 @@ import {
   HelpCircle,
   FolderOpen,
   Activity,
-  Layers
+  Layers,
+  BarChart2,
+  PieChart as PieChartIcon
 } from 'lucide-react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, Legend 
+} from 'recharts';
 
 export default function Dashboard({ 
   stats, 
@@ -29,43 +35,90 @@ export default function Dashboard({
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
-  const formatDate = (isoString) => {
-    if (!isoString) return "";
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    } catch(e) {
-      return isoString;
-    }
-  };
-
   const hasProjects = projects && projects.length > 0;
   const isAdmin = userProfile?.role === 'Admin';
 
-  // Calculate new metrics
-  const establishmentCounts = {};
+  // Calculate base metrics
   let totalSectorsAnalyzed = 0;
   
+  // Advanced Chart Metrics
+  const estTypeMap = {};
+  const profileMap = {};
+  const projTypeMap = {};
+  const equipmentMap = {};
+
   projects.forEach(p => {
-    const t = p.establishment_type || 'Outros';
-    establishmentCounts[t] = (establishmentCounts[t] || 0) + 1;
     if (p.sectors) {
       totalSectorsAnalyzed += p.sectors.length;
+    }
+
+    const t = p.establishment_type || 'Outros';
+    estTypeMap[t] = (estTypeMap[t] || 0) + 1;
+
+    const pr = p.profile || 'Outros';
+    profileMap[pr] = (profileMap[pr] || 0) + 1;
+
+    const pt = p.project_type || 'Outros';
+    projTypeMap[pt] = (projTypeMap[pt] || 0) + 1;
+
+    if (p.results) {
+      // To prevent counting the same equipment multiple times per project, we track seen codes
+      const seenInProj = new Set();
+      p.results.forEach(r => {
+        const qty = (r.quantity_adjusted !== null && r.quantity_adjusted !== undefined) ? r.quantity_adjusted : r.quantity_recommended;
+        if (qty > 0) {
+          const code = r.equipment_code;
+          if (!equipmentMap[code]) {
+            equipmentMap[code] = {
+              name: r.equipment_name || 'Equipamento',
+              code: code,
+              count: 0,
+              totalValue: 0
+            };
+          }
+          if (!seenInProj.has(code)) {
+            equipmentMap[code].count += 1;
+            equipmentMap[code].totalValue += (r.avg_price || 0);
+            seenInProj.add(code);
+          }
+        }
+      });
     }
   });
   
   let topEstablishment = { name: '-', count: 0, pct: 0 };
   if (projects.length > 0) {
-    for (const [name, count] of Object.entries(establishmentCounts)) {
+    for (const [name, count] of Object.entries(estTypeMap)) {
       if (count > topEstablishment.count) {
         topEstablishment = { name, count, pct: Math.round((count / projects.length) * 100) };
       }
     }
   }
+
+  const chartDataEstType = Object.entries(estTypeMap)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a,b) => b.value - a.value);
+
+  const chartDataProfile = Object.entries(profileMap)
+    .map(([name, value]) => ({ name, value }));
+
+  const chartDataProjType = Object.entries(projTypeMap)
+    .map(([name, value]) => ({ name, value }));
+  
+  const topEquipment = Object.values(equipmentMap)
+    .map(e => ({
+      ...e,
+      avgPrice: e.totalValue / e.count
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8); // top 8
+
+  const COLORS = ['#1e6d46', '#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'];
+
   if (!hasProjects) {
     return (
       <div className="tab-section active">
-        {/* Onboarding Hero Section (Directly on grey background) */}
+        {/* Onboarding Hero Section */}
         <div style={{ textAlign: 'center', padding: '16px 20px', maxWidth: '800px', margin: '0 auto 20px auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(30, 109, 70, 0.05)' }}>
             <TrendingUp size={24} />
@@ -120,24 +173,30 @@ export default function Dashboard({
     );
   }
 
-  // State B: Active State (1+ Projects) - Main Operational Dashboard
+  // Custom label for Donut charts
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+    if (percent < 0.05) return null;
+    return (
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="bold">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   return (
     <div className="tab-section active">
-      <div className="page-actions">
-        <button className="btn btn-primary" onClick={onStartNewProject}>
-          <Plus size={16} /> Novo Projeto
-        </button>
-      </div>
-      
       {/* Statistics Grid */}
-      <div className="dashboard-grid" style={{ '--cols-count': 4 }}>
+      <div className="dashboard-grid" style={{ '--cols-count': 4, marginBottom: '24px' }}>
         <div className="card-premium stats-card stat-projects" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
           <div className="stats-icon-wrapper" style={{ width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eef2ff', color: '#4f46e5' }}>
             <FileText size={24} />
           </div>
           <div className="stats-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stats-value" style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--secondary)' }}>{projects.length}</span>
-            <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Estimativas Ativas</span>
+            <span className="stats-label" style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>Estimativas Analisadas</span>
           </div>
         </div>
         
@@ -172,81 +231,130 @@ export default function Dashboard({
         </div>
       </div>
       
-      {/* Split Section */}
-      <div className="dashboard-split" style={{ marginTop: '8px' }}>
-        
-        {/* Recent Estimations List */}
-        <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.25rem', fontFamily: 'var(--font-display)', fontWeight: 700 }}>
-              <FolderOpen size={22} style={{ color: 'var(--primary)' }} /> Estimativas Recentes
-            </h2>
-            <button className="btn btn-secondary btn-sm" onClick={() => onNavigate('projects')}>
-              Ver Todos
-            </button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {projects.slice(0, 3).map((proj) => {
-              // Sum investment for this single project
-              let projCost = 0;
-              if (proj.results) {
-                proj.results.forEach(r => {
-                  const qty = (r.quantity_adjusted !== null && r.quantity_adjusted !== undefined) ? r.quantity_adjusted : r.quantity_recommended;
-                  projCost += qty * r.avg_price;
-                });
-              }
-              return (
-                <div key={proj.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', backgroundColor: 'var(--bg-panel)', borderRadius: '16px', border: '1px solid var(--border-color)', transition: 'all 0.25s ease' }} className="project-quick-item">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--secondary)', fontSize: '1.05rem', fontFamily: 'var(--font-display)' }}>{proj.name}</span>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--secondary-light)', fontWeight: 500 }}>
-                      {proj.hospital_name}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      Atualizado em: {new Date(proj.updated_at || proj.created_at).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{formatBRL(projCost)}</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>custo estimado</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      {/* Charts Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+        {/* Bar Chart: Estabelecimento */}
+        <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '400px' }}>
+          <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '20px' }}>
+            <BarChart2 size={20} style={{ color: 'var(--primary)' }} /> Volume por Tipo de Estabelecimento
+          </h2>
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartDataEstType} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                <XAxis type="number" allowDecimals={false} stroke="#64748b" fontSize={12} />
+                <YAxis dataKey="name" type="category" width={120} stroke="#64748b" fontSize={12} fontWeight={500} />
+                <RechartsTooltip cursor={{fill: '#f1f5f9'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
+                <Bar dataKey="value" name="Projetos" fill="var(--primary)" radius={[0, 4, 4, 0]} barSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Right column: User Planning Tips */}
-        <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.25rem', fontFamily: 'var(--font-display)', fontWeight: 700 }}>
-            <HelpCircle size={22} style={{ color: 'var(--primary)' }} /> Dicas de Planejamento
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', fontSize: '0.88rem', lineHeight: '1.6' }}>
-            <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
-              <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Ajustes de Estimativa</strong>
-              <span style={{ color: 'var(--secondary-light)' }}>
-                No Passo 4, você pode alterar a quantidade sugerida de qualquer equipamento. Lembre-se de registrar uma justificativa técnica para documentar sua decisão.
-              </span>
+        {/* Donut Charts: Profile and Project Type */}
+        <div style={{ display: 'grid', gridTemplateRows: '1fr 1fr', gap: '24px' }}>
+          <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
+            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '10px' }}>
+              <PieChartIcon size={20} style={{ color: 'var(--primary)' }} /> Distribuição por Perfil Administrativo
+            </h2>
+            <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartDataProfile}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={65}
+                    paddingAngle={2}
+                    dataKey="value"
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                  >
+                    {chartDataProfile.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
+                  <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{fontSize: '12px'}} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-            
-            <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
-              <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Filtros de Relevância</strong>
-              <span style={{ color: 'var(--secondary-light)' }}>
-                Filtre a estimativa por classificação (Obrigatório, Recomendado, Opcional) para focar nas necessidades prioritárias da sua unidade de saúde.
-              </span>
-            </div>
+          </div>
 
-            <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: '12px' }}>
-              <strong style={{ color: 'var(--secondary)', display: 'block', marginBottom: '4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Privacidade dos Projetos</strong>
-              <span style={{ color: 'var(--secondary-light)' }}>
-                Não insira dados pessoais de pacientes ou prontuários. A plataforma armazena apenas dados estruturais e quantitativos do planejamento técnico.
-              </span>
+          <div className="card-premium" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
+            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '10px' }}>
+              <PieChartIcon size={20} style={{ color: 'var(--primary)' }} /> Distribuição por Tipo de Projeto
+            </h2>
+            <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartDataProjType}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={65}
+                    paddingAngle={2}
+                    dataKey="value"
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                  >
+                    {chartDataProjType.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
+                  <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{fontSize: '12px'}} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Equipment Frequencies Table */}
+      <div className="card-premium" style={{ padding: '24px' }}>
+        <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: '20px' }}>
+          <Activity size={20} style={{ color: 'var(--primary)' }} /> Top Equipamentos Mais Frequentes
+        </h2>
+        
+        <div className="table-wrapper">
+          <table className="table-premium" style={{ margin: 0 }}>
+            <thead>
+              <tr>
+                <th style={{ width: '60px', textAlign: 'center' }}>Pos.</th>
+                <th>Equipamento</th>
+                <th style={{ textAlign: 'center' }}>Projetos Presentes</th>
+                <th style={{ textAlign: 'right' }}>Valor Médio Referencial</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topEquipment.length > 0 ? (
+                topEquipment.map((eq, idx) => (
+                  <tr key={eq.code}>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>{idx + 1}º</td>
+                    <td style={{ fontWeight: 500 }}>{eq.name}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
+                        {eq.count}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatBRL(eq.avgPrice)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '40px', color: 'var(--secondary-light)' }}>
+                    Nenhum dado de equipamento disponível nas estimativas salvas.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   );
 }
