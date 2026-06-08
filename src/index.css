@@ -393,14 +393,15 @@ body.app-active .app-container {
 
 /* Call to Action Banner */
 .lp-cta-banner {
-  background: linear-gradient(135deg, var(--secondary), #0f1e36);
-  color: white;
+  background: #f1f5f9;
+  color: var(--secondary);
   padding: 80px;
   text-align: center;
+  border-top: 1px solid var(--border-color);
 }
 
 .lp-cta-wrapper {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -412,12 +413,21 @@ body.app-active .app-container {
   font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 700;
+  color: var(--secondary);
 }
 
 .lp-cta-desc {
-  color: #94a3b8;
+  color: var(--secondary-light);
   font-size: 1.1rem;
   line-height: 1.6;
+}
+
+.btn.lp-cta-button {
+  padding: 14px 28px;
+  background: var(--primary-gradient);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(30, 109, 70, 0.18);
 }
 
 /* Footer */
@@ -1955,7 +1965,7 @@ textarea.form-control {
 /* Unified interactive workflow 'Como funciona' */
 .lp-how-interactive-container {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 1fr 1.6fr;
   gap: 48px;
   align-items: start;
   max-width: 1200px;
@@ -2034,24 +2044,18 @@ textarea.form-control {
 .lp-interactive-preview {
   position: sticky;
   top: 100px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 32px;
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  padding: 0;
+  overflow: hidden;
   box-shadow: var(--shadow-md);
 }
 
 .lp-preview-visual {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  animation: fadeIn 0.4s ease-out;
+  display: block;
+  animation: fadeIn 0.35s ease-out;
 }
 
 @keyframes fadeIn {
@@ -2206,5 +2210,3 @@ textarea.form-control {
     height: auto !important;
   }
 }
-
-
