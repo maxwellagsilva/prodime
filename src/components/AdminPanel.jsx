@@ -14,6 +14,18 @@ import {
 } from 'lucide-react';
 import { SECTORS_METADATA } from '../utils/constants';
 
+const createProfileId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const rand = Math.random() * 16 | 0;
+    const value = char === 'x' ? rand : (rand & 0x3) | 0x8;
+    return value.toString(16);
+  });
+};
+
 export default function AdminPanel({
   equipment = [],
   rules = [],
@@ -249,7 +261,7 @@ export default function AdminPanel({
   const handleSaveUserForm = (e) => {
     e.preventDefault();
     onSaveUser({
-      id: userId || 'USR-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      id: userId || createProfileId(),
       email: userEmail,
       name: userName,
       role: userRole,
