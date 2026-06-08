@@ -600,11 +600,40 @@ export default function App() {
     if (profile?.role !== 'Admin') return;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert(userData);
-      if (error) throw error;
-      showToast('Perfil do usuário atualizado', 'success');
+      if (!userData.id) {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+
+        const accessToken = sessionData?.session?.access_token;
+        if (!accessToken) throw new Error('Sessão expirada. Faça login novamente.');
+
+        const response = await fetch('/api/admin/invite-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify(userData)
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || 'Erro ao convidar usuário');
+        }
+
+        showToast(
+          payload.invited
+            ? 'Convite enviado ao usuário por e-mail'
+            : 'Usuário já existia no Auth. Perfil atualizado.',
+          'success'
+        );
+      } else {
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(userData);
+        if (error) throw error;
+        showToast('Perfil do usuário atualizado', 'success');
+      }
       await loadCloudData(profile);
     } catch (err) {
       showToast(err.message, 'danger');

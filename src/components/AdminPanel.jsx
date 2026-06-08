@@ -14,18 +14,6 @@ import {
 } from 'lucide-react';
 import { SECTORS_METADATA } from '../utils/constants';
 
-const createProfileId = () => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
-    const rand = Math.random() * 16 | 0;
-    const value = char === 'x' ? rand : (rand & 0x3) | 0x8;
-    return value.toString(16);
-  });
-};
-
 export default function AdminPanel({
   equipment = [],
   rules = [],
@@ -261,7 +249,7 @@ export default function AdminPanel({
   const handleSaveUserForm = (e) => {
     e.preventDefault();
     onSaveUser({
-      id: userId || createProfileId(),
+      id: userId || null,
       email: userEmail,
       name: userName,
       role: userRole,
@@ -690,7 +678,7 @@ export default function AdminPanel({
         <div className="modal-overlay">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 className="modal-title">{isEditingUser ? 'Editar Usuário' : 'Novo Usuário'}</h3>
+              <h3 className="modal-title">{isEditingUser ? 'Editar Usuário' : 'Convidar Usuário'}</h3>
               <button className="modal-close" onClick={() => setUserModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleSaveUserForm}>
@@ -733,7 +721,7 @@ export default function AdminPanel({
               </div>
               <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setUserModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn btn-primary">Salvar Usuário</button>
+                <button type="submit" className="btn btn-primary">{isEditingUser ? 'Salvar Usuário' : 'Enviar Convite'}</button>
               </div>
             </form>
           </div>
