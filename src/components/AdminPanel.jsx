@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
 import { 
-  Plus, 
   Search, 
-  Edit, 
-  Trash, 
   Sliders, 
   Settings, 
-  Users, 
-  Clock, 
-  Check, 
-  X,
-  FileText
+  Users
 } from 'lucide-react';
 import { SECTORS_METADATA } from '../utils/constants';
 
@@ -20,8 +13,7 @@ export default function AdminPanel({
   users = [],
   onSaveEquipment,
   onSaveRule,
-  onSaveUser,
-  onDeleteUser
+  onSaveUser
 }) {
   const [adminTab, setAdminTab] = useState('equipment');
 
@@ -82,7 +74,6 @@ export default function AdminPanel({
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('User');
   const [userActive, setUserActive] = useState(true);
-  const [isEditingUser, setIsEditingUser] = useState(false);
 
   // Equipment Form opens
   const openNewEqModal = () => {
@@ -225,24 +216,12 @@ export default function AdminPanel({
     setRuleModalOpen(false);
   };
 
-  // User forms
-  const openNewUserModal = () => {
-    setUserId('');
-    setUserEmail('');
-    setUserName('');
-    setUserRole('User');
-    setUserActive(true);
-    setIsEditingUser(false);
-    setUserModalOpen(true);
-  };
-
   const openEditUserModal = (item) => {
     setUserId(item.id);
     setUserEmail(item.email);
     setUserName(item.name || '');
     setUserRole(item.role || 'User');
     setUserActive(item.active !== false);
-    setIsEditingUser(true);
     setUserModalOpen(true);
   };
 
@@ -437,10 +416,12 @@ export default function AdminPanel({
       {adminTab === 'users' && (
         <div className="card-premium">
           <div className="admin-header">
-            <h2 className="card-title">Usuários Cadastrados</h2>
-            <button className="btn btn-primary" onClick={openNewUserModal}>
-              Novo Usuário
-            </button>
+            <div>
+              <h2 className="card-title">Usuários Cadastrados</h2>
+              <p style={{ color: 'var(--secondary-light)', fontSize: '0.9rem', marginTop: '6px' }}>
+                Usuários aparecem aqui após o primeiro acesso com Google.
+              </p>
+            </div>
           </div>
 
           <div className="table-wrapper">
@@ -461,12 +442,9 @@ export default function AdminPanel({
                     <td>{item.email}</td>
                     <td><span className="badge badge-info">{item.role || 'User'}</span></td>
                     <td><span className={`badge ${item.active ? 'badge-success' : 'badge-warning'}`}>{item.active ? 'Ativo' : 'Inativo'}</span></td>
-                    <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                    <td style={{ textAlign: 'center' }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => openEditUserModal(item)}>
                         Editar
-                      </button>
-                      <button className="btn btn-danger btn-sm" onClick={() => { if(confirm('Excluir usuário?')) onDeleteUser(item.id); }}>
-                        Excluir
                       </button>
                     </td>
                   </tr>
@@ -678,7 +656,7 @@ export default function AdminPanel({
         <div className="modal-overlay">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 className="modal-title">{isEditingUser ? 'Editar Usuário' : 'Convidar Usuário'}</h3>
+              <h3 className="modal-title">Editar Usuário</h3>
               <button className="modal-close" onClick={() => setUserModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleSaveUserForm}>
@@ -690,7 +668,7 @@ export default function AdminPanel({
                     className="form-control" 
                     value={userEmail} 
                     onChange={e => setUserEmail(e.target.value)} 
-                    disabled={isEditingUser} 
+                    disabled
                     required 
                   />
                 </div>
@@ -721,7 +699,7 @@ export default function AdminPanel({
               </div>
               <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setUserModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn btn-primary">{isEditingUser ? 'Salvar Usuário' : 'Enviar Convite'}</button>
+                <button type="submit" className="btn btn-primary">Salvar Usuário</button>
               </div>
             </form>
           </div>

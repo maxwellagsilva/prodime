@@ -50,10 +50,6 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authName, setAuthName] = useState('');
 
   // Core Data States
   const [projects, setProjects] = useState([]);
@@ -127,9 +123,7 @@ export default function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // Redirecionamento de recuperação de senha disparado pelo e-mail
-        setAuthMode('reset');
-        setAuthModalOpen(true);
+        showToast('A recuperação por senha está desativada. Acesse usando sua conta Google.', 'info');
       } else if (session) {
         // Only fetch profile and show toast if the user changed
         if (currentUserIdRef.current !== session.user.id) {
@@ -324,67 +318,6 @@ export default function App() {
 
   // Log Audit actions to Supabase (Disabled/Removed)
   const logAudit = () => {};
-
-  // Authenticate logic
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setLoadingText('Aguarde...');
-    try {
-      if (authMode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: authEmail,
-          password: authPassword
-        });
-        if (error) throw error;
-        setAuthModalOpen(false);
-        setAuthEmail('');
-        setAuthPassword('');
-      } else if (authMode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({
-          email: authEmail,
-          password: authPassword,
-          options: {
-            data: { name: authName }
-          }
-        });
-        if (error) throw error;
-
-        if (data?.session) {
-          showToast('Cadastro realizado com sucesso!', 'success');
-          setAuthModalOpen(false);
-          setAuthEmail('');
-          setAuthPassword('');
-          setAuthName('');
-        } else {
-          showToast('Cadastro recebido. Verifique seu e-mail para confirmar a conta antes de fazer login.', 'success');
-          setAuthMode('login');
-          setAuthPassword('');
-          setAuthName('');
-        }
-      } else if (authMode === 'forgot') {
-        const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
-          redirectTo: window.location.origin + '/app'
-        });
-        if (error) throw error;
-        showToast('E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.', 'success');
-        setAuthModalOpen(false);
-        setAuthEmail('');
-      } else if (authMode === 'reset') {
-        const { error } = await supabase.auth.updateUser({ password: authPassword });
-        if (error) throw error;
-        showToast('Senha atualizada com sucesso!', 'success');
-        setAuthModalOpen(false);
-        setAuthPassword('');
-        // Limpar os parâmetros de hash/URL de redefinição
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    } catch (err) {
-      showToast(err.message, 'danger');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -611,55 +544,13 @@ export default function App() {
     if (profile?.role !== 'Admin') return;
     setLoading(true);
     try {
-      if (!userData.id) {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
+      if (!userData.id) throw new Error('Usuário deve acessar com Google antes de ser editado.');
 
-        const accessToken = sessionData?.session?.access_token;
-        if (!accessToken) throw new Error('Sessão expirada. Faça login novamente.');
-
-        const response = await fetch('/api/admin/invite-user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`
-          },
-          body: JSON.stringify(userData)
-        });
-
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(payload.error || 'Erro ao convidar usuário');
-        }
-
-        showToast(
-          payload.invited
-            ? 'Convite enviado ao usuário por e-mail'
-            : 'Usuário já existia no Auth. Perfil atualizado.',
-          'success'
-        );
-      } else {
-        const { error } = await supabase
-          .from('profiles')
-          .upsert(userData);
-        if (error) throw error;
-        showToast('Perfil do usuário atualizado', 'success');
-      }
-      await loadCloudData(profile);
-    } catch (err) {
-      showToast(err.message, 'danger');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteUser = async (uId) => {
-    if (profile?.role !== 'Admin') return;
-    setLoading(true);
-    try {
-      const { error } = await supabase.from('profiles').delete().eq('id', uId);
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(userData);
       if (error) throw error;
-      showToast('Usuário removido da base', 'success');
+      showToast('Perfil do usuário atualizado', 'success');
       await loadCloudData(profile);
     } catch (err) {
       showToast(err.message, 'danger');
@@ -745,7 +636,7 @@ export default function App() {
       {view === 'landing' ? (
         <LandingPage 
           onStartApp={() => { setView('app'); setTab('dashboard'); }} 
-          onLoginClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+          onLoginClick={() => setAuthModalOpen(true)}
           user={user}
           onViewPrivacy={() => setView('privacy-policy')}
           onViewTerms={() => setView('terms-of-use')}
@@ -841,7 +732,7 @@ export default function App() {
                 ) : (
                   <a 
                     className="nav-item"
-                    onClick={() => { setAuthMode('login'); setAuthModalOpen(true); setMobileMenuOpen(false); }}
+                    onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
                   >
                     <LogIn size={20} className="nav-icon" />
                     Fazer Login
@@ -1002,7 +893,6 @@ export default function App() {
                   onSaveEquipment={handleSaveEquipment}
                   onSaveRule={handleSaveRule}
                   onSaveUser={handleSaveUser}
-                  onDeleteUser={handleDeleteUser}
                 />
               )}
 
@@ -1020,159 +910,46 @@ export default function App() {
         <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-card" style={{ maxWidth: '420px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">
-                {authMode === 'login' && 'Acessar PRODIME'}
-                {authMode === 'signup' && 'Criar Conta Grátis'}
-                {authMode === 'forgot' && 'Recuperar Senha'}
-                {authMode === 'reset' && 'Definir Nova Senha'}
-              </h3>
+              <h3 className="modal-title">Acessar PRODIME</h3>
               <button className="modal-close" onClick={() => setAuthModalOpen(false)}>&times;</button>
             </div>
-            <form onSubmit={handleAuth}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {authMode === 'signup' && (
-                  <>
-                    <div className="form-group">
-                      <label className="form-label">Nome Completo *</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        value={authName} 
-                        onChange={e => setAuthName(e.target.value)} 
-                        placeholder="Ex: Dr. Roberto Santos ou Engª. Ana Silva" 
-                        required 
-                      />
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--secondary-light)', marginTop: '2px', lineHeight: '1.4' }}>
-                      Ao registrar-se, você concorda com os nossos{' '}
-                      <a 
-                        onClick={() => { setAuthModalOpen(false); setView('terms-of-use'); }} 
-                        style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
-                      >
-                        Termos de Uso
-                      </a>{' '}
-                      e{' '}
-                      <a 
-                        onClick={() => { setAuthModalOpen(false); setView('privacy-policy'); }} 
-                        style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
-                      >
-                        Política de Privacidade
-                      </a>.
-                    </div>
-                  </>
-                )}
-                
-                {(authMode === 'login' || authMode === 'signup' || authMode === 'forgot') && (
-                  <div className="form-group">
-                    <label className="form-label">E-mail *</label>
-                    <input 
-                      type="email" 
-                      className="form-control" 
-                      value={authEmail} 
-                      onChange={e => setAuthEmail(e.target.value)} 
-                      placeholder="nome@empresa.com.br" 
-                      required 
-                    />
-                  </div>
-                )}
+            <div>
+              <p style={{ color: 'var(--secondary-light)', lineHeight: 1.6, marginBottom: '20px' }}>
+                Use sua conta Google para acessar o sistema. No primeiro acesso, seu perfil será criado automaticamente.
+              </p>
 
-                {(authMode === 'login' || authMode === 'signup' || authMode === 'reset') && (
-                  <div className="form-group">
-                    <label className="form-label">
-                      {authMode === 'reset' ? 'Nova Senha *' : 'Senha de Acesso *'}
-                    </label>
-                    <input 
-                      type="password" 
-                      className="form-control" 
-                      value={authPassword} 
-                      onChange={e => setAuthPassword(e.target.value)} 
-                      placeholder="Mínimo 6 caracteres" 
-                      required 
-                    />
-                  </div>
-                )}
-              </div>
-
-              <button 
-                type="submit" 
-                className="btn btn-primary" 
-                style={{ width: '100%', marginTop: '24px', padding: '12px' }}
+              <button
+                type="button"
+                className="btn-google"
+                onClick={handleGoogleLogin}
+                style={{ width: '100%' }}
               >
-                {authMode === 'login' && 'Entrar'}
-                {authMode === 'signup' && 'Registrar'}
-                {authMode === 'forgot' && 'Enviar Link de Recuperação'}
-                {authMode === 'reset' && 'Salvar Nova Senha'}
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.91c1.7-1.56 2.69-3.86 2.69-6.6z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.2l-2.91-2.26c-.8.54-1.84.88-3.05.88-2.34 0-4.33-1.58-5.04-3.71H.94v2.33A9 9 0 0 0 9 18z"/>
+                  <path fill="#FBBC05" d="M3.96 10.71a5.41 5.41 0 0 1 0-3.42V4.96H.94a9 9 0 0 0 0 8.08l3.02-2.33z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35L15 2.4C13.46.97 11.43 0 9 0 5.48 0 2.43 2.03.94 4.96l3.02 2.33c.71-2.13 2.7-3.71 5.04-3.71z"/>
+                </svg>
+                Entrar com o Google
               </button>
 
-              {/* Login Social (Google OAuth) - Apenas Login & Signup */}
-              {(authMode === 'login' || authMode === 'signup') && (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
-                    <span style={{ padding: '0 10px' }}>ou</span>
-                    <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
-                  </div>
-                  
-                  <button 
-                    type="button" 
-                    className="btn-google" 
-                    onClick={handleGoogleLogin}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 18 18">
-                      <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.91c1.7-1.56 2.69-3.86 2.69-6.6z"/>
-                      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.2l-2.91-2.26c-.8.54-1.84.88-3.05.88-2.34 0-4.33-1.58-5.04-3.71H.94v2.33A9 9 0 0 0 9 18z"/>
-                      <path fill="#FBBC05" d="M3.96 10.71a5.41 5.41 0 0 1 0-3.42V4.96H.94a9 9 0 0 0 0 8.08l3.02-2.33z"/>
-                      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35L15 2.4C13.46.97 11.43 0 9 0 5.48 0 2.43 2.03.94 4.96l3.02 2.33c.71-2.13 2.7-3.71 5.04-3.71z"/>
-                    </svg>
-                    {authMode === 'login' ? 'Entrar com o Google' : 'Cadastrar com o Google'}
-                  </button>
-                </>
-              )}
-
-              {/* Links de Alternância */}
-              <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {authMode === 'login' && (
-                  <>
-                    <span>
-                      Não possui uma conta?{' '}
-                      <a 
-                        style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                        onClick={() => { setAuthMode('signup'); setAuthEmail(''); setAuthPassword(''); }}
-                      >
-                        Cadastre-se grátis
-                      </a>
-                    </span>
-                    <a 
-                      style={{ color: 'var(--secondary-light)', cursor: 'pointer', fontSize: '0.8rem' }}
-                      onClick={() => { setAuthMode('forgot'); setAuthEmail(''); setAuthPassword(''); }}
-                    >
-                      Esqueci minha senha
-                    </a>
-                  </>
-                )}
-                
-                {authMode === 'signup' && (
-                  <span>
-                    Já tem um cadastro?{' '}
-                    <a 
-                      style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                      onClick={() => { setAuthMode('login'); setAuthEmail(''); setAuthPassword(''); }}
-                    >
-                      Acesse sua conta
-                    </a>
-                  </span>
-                )}
-
-                {authMode === 'forgot' && (
-                  <a 
-                    style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                    onClick={() => { setAuthMode('login'); setAuthEmail(''); setAuthPassword(''); }}
-                  >
-                    Voltar para o Login
-                  </a>
-                )}
+              <div style={{ fontSize: '0.78rem', color: 'var(--secondary-light)', marginTop: '18px', lineHeight: '1.5', textAlign: 'center' }}>
+                Ao acessar, você concorda com os nossos{' '}
+                <a
+                  onClick={() => { setAuthModalOpen(false); setView('terms-of-use'); }}
+                  style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
+                >
+                  Termos de Uso
+                </a>{' '}
+                e{' '}
+                <a
+                  onClick={() => { setAuthModalOpen(false); setView('privacy-policy'); }}
+                  style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
+                >
+                  Política de Privacidade
+                </a>.
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
