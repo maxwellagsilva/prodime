@@ -27,7 +27,69 @@ import AdminPanel from './components/AdminPanel';
 import HelpView from './components/HelpView';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfUse from './components/TermsOfUse';
-import { FALLBACK_EQUIPMENT, FALLBACK_RULES, FALLBACK_SECTOR_COMPATIBILITY } from './utils/constants';
+import { SECTORS_METADATA, FALLBACK_EQUIPMENT, FALLBACK_RULES, FALLBACK_SECTOR_COMPATIBILITY } from './utils/constants';
+
+const FALLBACK_ESTABLISHMENT_TYPES = [
+  'Hospital Geral',
+  'Hospital Especializado',
+  'Hospital-Dia',
+  'Clínica Ambulatorial',
+  'Centro de Diagnóstico',
+  'Unidade Básica de Saúde',
+  'Pronto Atendimento'
+];
+
+const normalizeSectorParams = (params, fallbackParams = []) => {
+  if (Array.isArray(params)) {
+    return params
+      .map(param => ({
+        name: String(param.name || '').trim(),
+        label: String(param.label || param.name || '').trim()
+      }))
+      .filter(param => param.name && param.label);
+  }
+
+  if (typeof params === 'string') {
+    try {
+      return normalizeSectorParams(JSON.parse(params), fallbackParams);
+    } catch {
+      return fallbackParams;
+    }
+  }
+
+  return fallbackParams;
+};
+
+const buildSectorMetadata = (compatibilityRows = []) => {
+  const fallbackById = new Map(SECTORS_METADATA.map(sector => [sector.id, sector]));
+  const sectorById = new Map();
+
+  compatibilityRows.forEach(row => {
+    if (!row?.sector_id || sectorById.has(row.sector_id)) return;
+    const fallback = fallbackById.get(row.sector_id);
+    const params = normalizeSectorParams(row.parameters, fallback?.params || []);
+
+    sectorById.set(row.sector_id, {
+      id: row.sector_id,
+      name: row.sector_name || fallback?.name || row.sector_id,
+      desc: row.sector_description || fallback?.desc || '',
+      params: params.length > 0 ? params : fallback?.params || []
+    });
+  });
+
+  SECTORS_METADATA.forEach(sector => {
+    if (!sectorById.has(sector.id)) {
+      sectorById.set(sector.id, sector);
+    }
+  });
+
+  return Array.from(sectorById.values()).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+};
+
+const buildEstablishmentTypes = (compatibilityRows = []) => {
+  const types = Array.from(new Set(compatibilityRows.map(row => row.establishment_type).filter(Boolean)));
+  return types.length > 0 ? types.sort((a, b) => a.localeCompare(b, 'pt-BR')) : FALLBACK_ESTABLISHMENT_TYPES;
+};
 
 const getInitialView = () => {
   if (typeof window === 'undefined') return 'landing';
@@ -56,6 +118,8 @@ export default function App() {
   const [equipment, setEquipment] = useState(FALLBACK_EQUIPMENT);
   const [rules, setRules] = useState(FALLBACK_RULES);
   const [sectorCompatibility, setSectorCompatibility] = useState(FALLBACK_SECTOR_COMPATIBILITY);
+  const [sectorMetadata, setSectorMetadata] = useState(buildSectorMetadata(FALLBACK_SECTOR_COMPATIBILITY));
+  const [establishmentTypes, setEstablishmentTypes] = useState(buildEstablishmentTypes(FALLBACK_SECTOR_COMPATIBILITY));
   const [adminUsers, setAdminUsers] = useState([]);
   
   // Dashboard Stats
@@ -261,7 +325,11 @@ export default function App() {
 
       // 5. Fetch Sector Compatibility Matrix
       const { data: compatData } = await supabase.from('establishment_sector_compatibility').select('*');
-      if (compatData && compatData.length > 0) setSectorCompatibility(compatData);
+      if (compatData && compatData.length > 0) {
+        setSectorCompatibility(compatData);
+        setSectorMetadata(buildSectorMetadata(compatData));
+        setEstablishmentTypes(buildEstablishmentTypes(compatData));
+      }
 
     } catch (err) {
       console.error('Error loading Supabase data:', err);
@@ -287,6 +355,9 @@ export default function App() {
     // Static fallback for guest catalog
     setEquipment(FALLBACK_EQUIPMENT);
     setRules(FALLBACK_RULES);
+    setSectorCompatibility(FALLBACK_SECTOR_COMPATIBILITY);
+    setSectorMetadata(buildSectorMetadata(FALLBACK_SECTOR_COMPATIBILITY));
+    setEstablishmentTypes(buildEstablishmentTypes(FALLBACK_SECTOR_COMPATIBILITY));
   };
 
   // Triggered when any project list or calculation updates
@@ -532,6 +603,43 @@ export default function App() {
 
       logAudit('Salvar Regra', `Regra ${ruleData.id} (${ruleData.name}) salva/editada.`);
       showToast('Regra de cálculo salva com sucesso!', 'success');
+      await loadCloudData(profile);
+    } catch (err) {
+      showToast(err.message, 'danger');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveSectorDefinition = async (sectorData) => {
+    if (profile?.role !== 'Admin') {
+      showToast('Apenas administradores podem gerenciar ambientes', 'danger');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const cleanParams = normalizeSectorParams(sectorData.params, []);
+      if (!sectorData.id || !sectorData.name || cleanParams.length === 0) {
+        throw new Error('Informe o identificador, nome e ao menos um parâmetro do ambiente.');
+      }
+
+      const rows = establishmentTypes.map(type => ({
+        establishment_type: type,
+        sector_id: sectorData.id,
+        is_compatible: Boolean(sectorData.compatibility?.[type]),
+        sector_name: sectorData.name,
+        sector_description: sectorData.desc || '',
+        parameters: cleanParams
+      }));
+
+      const { error } = await supabase
+        .from('establishment_sector_compatibility')
+        .upsert(rows, { onConflict: 'establishment_type,sector_id' });
+
+      if (error) throw error;
+
+      showToast('Ambiente e parâmetros salvos com sucesso!', 'success');
       await loadCloudData(profile);
     } catch (err) {
       showToast(err.message, 'danger');
@@ -878,6 +986,8 @@ export default function App() {
                   rules={rules}
                   user={user}
                   sectorCompatibility={sectorCompatibility}
+                  sectorMetadata={sectorMetadata}
+                  establishmentTypes={establishmentTypes}
                   onSave={handleSaveProject}
                   onCancel={() => { setEditingProject(null); setTab('projects'); setEditingProjectStep(null); }}
                 />
@@ -890,8 +1000,12 @@ export default function App() {
                   equipment={equipment}
                   rules={rules}
                   users={adminUsers}
+                  sectorMetadata={sectorMetadata}
+                  sectorCompatibility={sectorCompatibility}
+                  establishmentTypes={establishmentTypes}
                   onSaveEquipment={handleSaveEquipment}
                   onSaveRule={handleSaveRule}
+                  onSaveSectorDefinition={handleSaveSectorDefinition}
                   onSaveUser={handleSaveUser}
                 />
               )}

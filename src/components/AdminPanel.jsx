@@ -11,8 +11,12 @@ export default function AdminPanel({
   equipment = [],
   rules = [],
   users = [],
+  sectorMetadata = [],
+  sectorCompatibility = [],
+  establishmentTypes = [],
   onSaveEquipment,
   onSaveRule,
+  onSaveSectorDefinition,
   onSaveUser
 }) {
   const [adminTab, setAdminTab] = useState('equipment');
@@ -25,6 +29,7 @@ export default function AdminPanel({
   // Modal Open states
   const [eqModalOpen, setEqModalOpen] = useState(false);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
+  const [sectorModalOpen, setSectorModalOpen] = useState(false);
   const [userModalOpen, setUserModalOpen] = useState(false);
 
   // Form states: Equipment
@@ -67,6 +72,14 @@ export default function AdminPanel({
   const [ruleNormRef, setRuleNormRef] = useState('');
   const [ruleActive, setRuleActive] = useState(true);
   const [isEditingRule, setIsEditingRule] = useState(false);
+
+  // Form states: Sector definitions
+  const [sectorId, setSectorId] = useState('');
+  const [sectorName, setSectorName] = useState('');
+  const [sectorDesc, setSectorDesc] = useState('');
+  const [sectorParamsText, setSectorParamsText] = useState('');
+  const [sectorCompatMap, setSectorCompatMap] = useState({});
+  const [isEditingSector, setIsEditingSector] = useState(false);
 
   // Form states: User
   const [userId, setUserId] = useState('');
@@ -216,6 +229,66 @@ export default function AdminPanel({
     setRuleModalOpen(false);
   };
 
+  // Sector definition forms
+  const getSectorCompatibilityMap = (sectorIdValue) => {
+    return establishmentTypes.reduce((acc, type) => {
+      const row = sectorCompatibility.find(item => item.establishment_type === type && item.sector_id === sectorIdValue);
+      acc[type] = row ? row.is_compatible !== false : true;
+      return acc;
+    }, {});
+  };
+
+  const formatParamsText = (params = []) => {
+    return params.map(param => `${param.name}|${param.label}`).join('\n');
+  };
+
+  const parseParamsText = () => {
+    return sectorParamsText
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => {
+        const [name, label] = line.split('|').map(part => part.trim());
+        return {
+          name,
+          label: label || name
+        };
+      })
+      .filter(param => param.name && param.label);
+  };
+
+  const openNewSectorModal = () => {
+    setSectorId('');
+    setSectorName('');
+    setSectorDesc('');
+    setSectorParamsText('leitos|Leitos');
+    setSectorCompatMap(establishmentTypes.reduce((acc, type) => ({ ...acc, [type]: true }), {}));
+    setIsEditingSector(false);
+    setSectorModalOpen(true);
+  };
+
+  const openEditSectorModal = (item) => {
+    setSectorId(item.id);
+    setSectorName(item.name);
+    setSectorDesc(item.desc || '');
+    setSectorParamsText(formatParamsText(item.params));
+    setSectorCompatMap(getSectorCompatibilityMap(item.id));
+    setIsEditingSector(true);
+    setSectorModalOpen(true);
+  };
+
+  const handleSaveSectorForm = (e) => {
+    e.preventDefault();
+    onSaveSectorDefinition({
+      id: sectorId.trim(),
+      name: sectorName.trim(),
+      desc: sectorDesc.trim(),
+      params: parseParamsText(),
+      compatibility: sectorCompatMap
+    });
+    setSectorModalOpen(false);
+  };
+
   const openEditUserModal = (item) => {
     setUserId(item.id);
     setUserEmail(item.email);
@@ -272,6 +345,12 @@ export default function AdminPanel({
           onClick={() => setAdminTab('rules')}
         >
           <Sliders size={16} /> Regras de Cálculo
+        </button>
+        <button 
+          style={{ padding: '12px 18px', border: 'none', borderBottom: adminTab === 'sectors' ? '3px solid var(--primary)' : '3px solid transparent', background: 'none', cursor: 'pointer', fontWeight: 600, color: adminTab === 'sectors' ? 'var(--primary)' : 'var(--secondary-light)', display: 'flex', alignItems: 'center', gap: '8px' }} 
+          onClick={() => setAdminTab('sectors')}
+        >
+          <Settings size={16} /> Ambientes
         </button>
         <button 
           style={{ padding: '12px 18px', border: 'none', borderBottom: adminTab === 'users' ? '3px solid var(--primary)' : '3px solid transparent', background: 'none', cursor: 'pointer', fontWeight: 600, color: adminTab === 'users' ? 'var(--primary)' : 'var(--secondary-light)', display: 'flex', alignItems: 'center', gap: '8px' }} 
@@ -363,7 +442,7 @@ export default function AdminPanel({
                 onChange={e => setRuleSector(e.target.value)}
               >
                 <option value="ALL">Todos os Setores</option>
-                {SECTORS_METADATA.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {(sectorMetadata.length > 0 ? sectorMetadata : SECTORS_METADATA).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <button className="btn btn-primary" onClick={openNewRuleModal}>
@@ -406,6 +485,64 @@ export default function AdminPanel({
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: SECTORS */}
+      {adminTab === 'sectors' && (
+        <div className="card-premium">
+          <div className="admin-header">
+            <div>
+              <h2 className="card-title">Ambientes e Parâmetros</h2>
+              <p style={{ color: 'var(--secondary-light)', fontSize: '0.9rem', marginTop: '6px' }}>
+                Cadastre ambientes, parâmetros solicitados no wizard e compatibilidade por tipo de estabelecimento.
+              </p>
+            </div>
+            <button className="btn btn-primary" onClick={openNewSectorModal}>
+              Cadastrar Ambiente
+            </button>
+          </div>
+
+          <div className="table-wrapper">
+            <table className="table-premium">
+              <thead>
+                <tr>
+                  <th>Ambiente</th>
+                  <th>Identificador</th>
+                  <th>Parâmetros</th>
+                  <th>Compatível com</th>
+                  <th style={{ width: '100px', textAlign: 'center' }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(sectorMetadata.length > 0 ? sectorMetadata : SECTORS_METADATA).map((item) => {
+                  const compatCount = establishmentTypes.filter(type => getSectorCompatibilityMap(item.id)[type]).length;
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <strong>{item.name}</strong>
+                        {item.desc && <div style={{ color: 'var(--secondary-light)', fontSize: '0.82rem', marginTop: '4px' }}>{item.desc}</div>}
+                      </td>
+                      <td><code>{item.id}</code></td>
+                      <td>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {(item.params || []).map(param => (
+                            <span key={param.name} className="badge badge-info">{param.label}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>{compatCount} de {establishmentTypes.length}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEditSectorModal(item)}>
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -574,7 +711,7 @@ export default function AdminPanel({
                 <div className="form-group">
                   <label className="form-label">Setor Aplicável *</label>
                   <select className="form-control" value={ruleSect} onChange={e => setRuleSect(e.target.value)} required>
-                    {SECTORS_METADATA.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    {(sectorMetadata.length > 0 ? sectorMetadata : SECTORS_METADATA).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
@@ -645,6 +782,88 @@ export default function AdminPanel({
               <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setRuleModalOpen(false)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary">Salvar Regra</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: SECTOR FORM */}
+      {sectorModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-card modal-lg">
+            <div className="modal-header">
+              <h3 className="modal-title">{isEditingSector ? 'Editar Ambiente' : 'Cadastrar Ambiente'}</h3>
+              <button className="modal-close" onClick={() => setSectorModalOpen(false)}>&times;</button>
+            </div>
+            <form onSubmit={handleSaveSectorForm}>
+              <div className="form-grid-3">
+                <div className="form-group">
+                  <label className="form-label">Identificador *</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={sectorId}
+                    onChange={e => setSectorId(e.target.value)}
+                    placeholder="Ex: UTI Adulto"
+                    disabled={isEditingSector}
+                    required
+                  />
+                </div>
+                <div className="form-group col-span-2">
+                  <label className="form-label">Nome do Ambiente *</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={sectorName}
+                    onChange={e => setSectorName(e.target.value)}
+                    placeholder="Ex: Unidade de Terapia Intensiva Adulto"
+                    required
+                  />
+                </div>
+                <div className="form-group col-span-3">
+                  <label className="form-label">Descrição</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={sectorDesc}
+                    onChange={e => setSectorDesc(e.target.value)}
+                    placeholder="Descrição curta exibida na seleção de ambientes"
+                  />
+                </div>
+                <div className="form-group col-span-3">
+                  <label className="form-label">Parâmetros *</label>
+                  <textarea
+                    className="form-control"
+                    value={sectorParamsText}
+                    onChange={e => setSectorParamsText(e.target.value)}
+                    rows={5}
+                    placeholder={'leitos|Leitos\nsalas_cirurgicas|Salas Cirúrgicas'}
+                    required
+                  />
+                  <p style={{ color: 'var(--secondary-light)', fontSize: '0.78rem', marginTop: '6px' }}>
+                    Use uma linha por parâmetro no formato <code>codigo|Rótulo exibido</code>.
+                  </p>
+                </div>
+                <div className="form-group col-span-3">
+                  <label className="form-label">Compatibilidade por Tipo de Estabelecimento</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                    {establishmentTypes.map(type => (
+                      <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', background: 'white', fontSize: '0.9rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={sectorCompatMap[type] !== false}
+                          onChange={e => setSectorCompatMap(prev => ({ ...prev, [type]: e.target.checked }))}
+                        />
+                        {type}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setSectorModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary">Salvar Ambiente</button>
               </div>
             </form>
           </div>

@@ -29,6 +29,8 @@ export default function ProjectWizard({
   rules = [], 
   user = null,
   sectorCompatibility = [],
+  sectorMetadata = SECTORS_METADATA,
+  establishmentTypes = [],
   onSave, 
   onCancel 
 }) {
@@ -221,7 +223,7 @@ export default function ProjectWizard({
     } else {
       setSelectedSectors([...selectedSectors, sectorId]);
       // Initialize its parameters to 0
-      const sectMeta = SECTORS_METADATA.find(s => s.id === sectorId);
+      const sectMeta = sectorMetadata.find(s => s.id === sectorId);
       const initialParams = {};
       sectMeta.params.forEach(p => {
         initialParams[p.name] = 0;
@@ -408,19 +410,23 @@ export default function ProjectWizard({
   const categories = [
     { 
       title: "Áreas Assistenciais", 
-      sectors: SECTORS_METADATA.filter(s => ["UTI Adulto", "UTI Neonatal", "UTI Pediátrica"].includes(s.id) && isSectorCompatible(s.id)) 
+      sectors: sectorMetadata.filter(s => ["UTI Adulto", "UTI Neonatal", "UTI Pediátrica"].includes(s.id) && isSectorCompatible(s.id)) 
     },
     { 
       title: "Áreas de Atendimento e Observação", 
-      sectors: SECTORS_METADATA.filter(s => ["Centro Cirúrgico", "Centro Obstétrico", "Pronto-Socorro", "Internação"].includes(s.id) && isSectorCompatible(s.id)) 
+      sectors: sectorMetadata.filter(s => ["Centro Cirúrgico", "Centro Obstétrico", "Pronto-Socorro", "Internação"].includes(s.id) && isSectorCompatible(s.id)) 
     },
     { 
       title: "Áreas de Apoio Diagnóstico", 
-      sectors: SECTORS_METADATA.filter(s => ["Diagnóstico por Imagem"].includes(s.id) && isSectorCompatible(s.id)) 
+      sectors: sectorMetadata.filter(s => ["Diagnóstico por Imagem"].includes(s.id) && isSectorCompatible(s.id)) 
     },
     { 
       title: "Áreas de Apoio Técnico", 
-      sectors: SECTORS_METADATA.filter(s => ["CME"].includes(s.id) && isSectorCompatible(s.id)) 
+      sectors: sectorMetadata.filter(s => ["CME"].includes(s.id) && isSectorCompatible(s.id)) 
+    },
+    {
+      title: "Outros Ambientes",
+      sectors: sectorMetadata.filter(s => !["UTI Adulto", "UTI Neonatal", "UTI Pediátrica", "Centro Cirúrgico", "Centro Obstétrico", "Pronto-Socorro", "Internação", "Diagnóstico por Imagem", "CME"].includes(s.id) && isSectorCompatible(s.id))
     }
   ];
 
@@ -456,7 +462,7 @@ export default function ProjectWizard({
             {Object.keys(parameters).length > 0 && selectedSectors.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
                 {selectedSectors.map(sectId => {
-                  const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
+                  const sectMeta = sectorMetadata.find(s => s.id === sectId);
                   if (!sectMeta) return null;
                   return sectMeta.params.map(p => {
                     const val = parameters[sectId]?.[p.name] || 0;
@@ -613,13 +619,17 @@ export default function ProjectWizard({
                     onChange={e => handleEstablishmentTypeChange(e.target.value)} 
                     required
                   >
-                    <option value="Hospital Geral">Hospital Geral</option>
-                    <option value="Hospital Especializado">Hospital Especializado</option>
-                    <option value="Hospital-Dia">Hospital-Dia</option>
-                    <option value="Clínica Ambulatorial">Clínica Ambulatorial</option>
-                    <option value="Centro de Diagnóstico">Centro de Diagnóstico por Imagem</option>
-                    <option value="Unidade Básica de Saúde">Unidade Básica de Saúde</option>
-                    <option value="Pronto Atendimento">Pronto Atendimento</option>
+                    {(establishmentTypes.length > 0 ? establishmentTypes : [
+                      'Hospital Geral',
+                      'Hospital Especializado',
+                      'Hospital-Dia',
+                      'Clínica Ambulatorial',
+                      'Centro de Diagnóstico',
+                      'Unidade Básica de Saúde',
+                      'Pronto Atendimento'
+                    ]).map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group">
@@ -764,7 +774,7 @@ export default function ProjectWizard({
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'stretch' }}>
               {selectedSectors.map(sectId => {
-                const sectMeta = SECTORS_METADATA.find(s => s.id === sectId);
+                const sectMeta = sectorMetadata.find(s => s.id === sectId);
                 const paramCount = sectMeta.params.length;
                 
                 let cardWidth = '100%';
