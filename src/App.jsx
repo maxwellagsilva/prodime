@@ -349,8 +349,19 @@ export default function App() {
           }
         });
         if (error) throw error;
-        showToast('Cadastro realizado! Por favor, faça login com suas credenciais.', 'success');
-        setAuthMode('login');
+
+        if (data?.session) {
+          showToast('Cadastro realizado com sucesso!', 'success');
+          setAuthModalOpen(false);
+          setAuthEmail('');
+          setAuthPassword('');
+          setAuthName('');
+        } else {
+          showToast('Cadastro recebido. Verifique seu e-mail para confirmar a conta antes de fazer login.', 'success');
+          setAuthMode('login');
+          setAuthPassword('');
+          setAuthName('');
+        }
       } else if (authMode === 'forgot') {
         const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
           redirectTo: window.location.origin + '/app'
